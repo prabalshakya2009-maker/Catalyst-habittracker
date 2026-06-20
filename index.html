@@ -13,28 +13,49 @@
             .span-2 { grid-column: span 2; }
             .span-3 { grid-column: span 3; }
         }
-        .inline-task-form {
-            display: flex; gap: 8px; margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.03); padding: 6px;
-            border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);
+        
+        /* --- NEW: Mobile Slide-Out Menu --- */
+        .mobile-header { display: none; justify-content: space-between; align-items: center; padding: 15px; background: var(--glass-bg); border-bottom: 1px solid var(--glass-border); margin-bottom: 15px; border-radius: 12px; }
+        .mobile-toggle { background: transparent; border: none; color: var(--primary-neon); font-size: 1.5rem; cursor: pointer; }
+        @media (max-width: 768px) {
+            .mobile-header { display: flex; }
+            .sidebar { position: fixed; top: 0; left: -100%; height: 100vh; width: 260px; z-index: 1000; transition: 0.3s ease-in-out; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); }
+            .sidebar.active { left: 0; }
+            .rank-predictor { margin-top: auto; margin-bottom: 20px; }
         }
+
+        /* --- NEW: Drag and Drop Task Styling --- */
+        .inline-task-form { display: flex; gap: 8px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.03); padding: 6px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .task-input-text { flex: 1; background: transparent; border: none; color: #fff; font-size: 0.8rem; padding: 4px 8px; outline: none; }
         .task-input-xp { width: 50px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--primary-neon); font-size: 0.8rem; border-radius: 4px; text-align: center; outline: none; }
         .task-add-btn { background: transparent; border: none; color: var(--primary-neon); cursor: pointer; padding: 0 8px; font-size: 0.9rem; transition: transform 0.2s; }
         .task-add-btn:hover { transform: scale(1.2); }
-        .directive-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-right: 5px; }
-        .directive-row .custom-checkbox { margin-bottom: 0 !important; flex: 1; }
+        .directive-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-right: 5px; cursor: grab; transition: opacity 0.2s; }
+        .directive-row:active { cursor: grabbing; }
+        .directive-row.dragging { opacity: 0.4; background: rgba(255,255,255,0.05); border-radius: 6px; }
+        .directive-row .custom-checkbox { margin-bottom: 0 !important; flex: 1; pointer-events: none; } /* Prevents drag glitch */
+        .directive-row input[type="checkbox"], .directive-row .task-delete-btn { pointer-events: auto; }
         .task-delete-btn { background: transparent; border: none; color: #ff4a5a; cursor: pointer; font-size: 0.85rem; opacity: 0.5; transition: opacity 0.2s; }
         .task-delete-btn:hover { opacity: 1; }
         .completed-task-text { text-decoration: line-through; color: var(--text-muted) !important; }
+
+        /* --- NEW: Achievement Badges --- */
+        .badge-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-around; margin-top: 15px; }
+        .badge-item { display: flex; flex-direction: column; align-items: center; text-align: center; width: 80px; gap: 5px; }
+        .badge-icon-box { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: 0.4s; }
+        .badge-locked .badge-icon-box { background: rgba(255,255,255,0.05); color: #444; border: 2px dashed #444; }
+        .badge-unlocked .badge-icon-box { background: rgba(0, 242, 254, 0.1); color: var(--primary-neon); border: 2px solid var(--primary-neon); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+        .badge-title { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .badge-unlocked .badge-title { color: #fff; }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <nav class="sidebar glass">
+        <nav class="sidebar glass" id="mobileSidebar">
             <div class="brand">
                 <i class="fa-solid fa-atom neon-text"></i>
                 <h2>NEXUS <span class="neon-text">OS</span></h2>
+                <button class="mobile-toggle" id="closeMenuBtn" style="display: none;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <ul class="nav-links">
                 <li class="active" data-target="all"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
@@ -51,6 +72,12 @@
         </nav>
 
         <main class="main-content">
+            
+            <div class="mobile-header">
+                <h3 style="margin:0; font-family: 'Orbitron', sans-serif;"><i class="fa-solid fa-atom neon-text"></i> NEXUS OS</h3>
+                <button class="mobile-toggle" id="openMenuBtn"><i class="fa-solid fa-bars"></i></button>
+            </div>
+
             <header class="glass">
                 <div class="user-stats">
                     <div class="stat-badge">
@@ -101,36 +128,42 @@
                 </section>
 
                 <section class="glass card directives-card dashboard-item">
-                    <h3><i class="fa-solid fa-list-check"></i> Daily Directives: <span id="dayLabel" class="text-warning">Today</span></h3>
+                    <h3><i class="fa-solid fa-list-check"></i> Daily Directives <span style="font-size:0.6rem; color:var(--text-muted);">(Drag to reorder)</span></h3>
                     <div class="schedule-block">
                         <div class="tracker-category">
                             <h4>Morning Block</h4>
                             <div class="inline-task-form">
-                                <input type="text" id="input-text-morning" placeholder="Add morning directive..." class="task-input-text">
+                                <input type="text" id="input-text-morning" placeholder="Add directive..." class="task-input-text">
                                 <input type="number" id="input-xp-morning" value="20" min="5" max="100" class="task-input-xp">
                                 <button class="task-add-btn" data-block="morning"><i class="fa-solid fa-plus"></i></button>
                             </div>
-                            <div id="list-container-morning"></div>
+                            <div id="list-container-morning" class="drag-container"></div>
                         </div>
                         <div class="tracker-category">
                             <h4>Afternoon Block</h4>
                             <div class="inline-task-form">
-                                <input type="text" id="input-text-afternoon" placeholder="Add afternoon directive..." class="task-input-text">
+                                <input type="text" id="input-text-afternoon" placeholder="Add directive..." class="task-input-text">
                                 <input type="number" id="input-xp-afternoon" value="30" min="5" max="100" class="task-input-xp">
                                 <button class="task-add-btn" data-block="afternoon"><i class="fa-solid fa-plus"></i></button>
                             </div>
-                            <div id="list-container-afternoon"></div>
+                            <div id="list-container-afternoon" class="drag-container"></div>
                         </div>
                         <div class="tracker-category">
                             <h4>Evening Block</h4>
                             <div class="inline-task-form">
-                                <input type="text" id="input-text-evening" placeholder="Add evening directive..." class="task-input-text">
+                                <input type="text" id="input-text-evening" placeholder="Add directive..." class="task-input-text">
                                 <input type="number" id="input-xp-evening" value="20" min="5" max="100" class="task-input-xp">
                                 <button class="task-add-btn" data-block="evening"><i class="fa-solid fa-plus"></i></button>
                             </div>
-                            <div id="list-container-evening"></div>
+                            <div id="list-container-evening" class="drag-container"></div>
                         </div>
                     </div>
+                </section>
+
+                <section class="glass card goals-card dashboard-item">
+                    <h3><i class="fa-solid fa-medal" style="color: var(--warning);"></i> Trophies & Milestones</h3>
+                    <div class="badge-grid" id="badgeContainer">
+                        </div>
                 </section>
 
                 <section class="glass card goals-card dashboard-item">
@@ -317,8 +350,21 @@
                             </div>
                         </div>
                     </div>
-                    <div style="margin-top: 2rem; text-align: center;">
+                    
+                    <div style="margin-top: 2rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2rem;">
                         <button id="saveConfigBtn" class="btn primary-btn" style="padding: 10px 40px; font-size: 1.1rem;">Save & Apply Globally</button>
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <h4 style="color: #ff4a5a; margin-bottom: 10px;"><i class="fa-solid fa-shield-halved"></i> Data Management & Safety</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Export your profile to save your XP and streaks before clearing your browser cache.</p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button id="exportDataBtn" class="btn secondary-btn"><i class="fa-solid fa-download"></i> Backup Profile (.json)</button>
+                            <label class="btn secondary-btn" style="cursor: pointer;">
+                                <i class="fa-solid fa-upload"></i> Restore Profile
+                                <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                            </label>
+                        </div>
                     </div>
                 </section>
             </div>
