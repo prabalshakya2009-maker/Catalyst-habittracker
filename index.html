@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catalyst</title>
+    <title>Nexus OS | Universal Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,6 +13,74 @@
             .span-2 { grid-column: span 2; }
             .span-3 { grid-column: span 3; }
         }
+        /* Custom Task Input Styling */
+        .inline-task-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .task-input-text {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            outline: none;
+        }
+        .task-input-xp {
+            width: 50px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--primary-neon);
+            font-size: 0.8rem;
+            border-radius: 4px;
+            text-align: center;
+            outline: none;
+        }
+        .task-add-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-neon);
+            cursor: pointer;
+            padding: 0 8px;
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+        .task-add-btn:hover {
+            transform: scale(1.2);
+        }
+        .directive-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-right: 5px;
+        }
+        .directive-row .custom-checkbox {
+            margin-bottom: 0 !important;
+            flex: 1;
+        }
+        .task-delete-btn {
+            background: transparent;
+            border: none;
+            color: #ff4a5a;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .task-delete-btn:hover {
+            opacity: 1;
+        }
+        .completed-task-text {
+            text-decoration: line-through;
+            color: var(--text-muted) !important;
+        }
     </style>
 </head>
 <body>
@@ -20,7 +88,7 @@
         <nav class="sidebar glass">
             <div class="brand">
                 <i class="fa-solid fa-atom neon-text"></i>
-                <h2><span class="neon-text">CATALYST</span></h2>
+                <h2>NEXUS <span class="neon-text">OS</span></h2>
             </div>
             <ul class="nav-links">
                 <li class="active" data-target="all"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
@@ -87,70 +155,39 @@
                 </section>
 
                 <section class="glass card directives-card dashboard-item">
-                    <h3><i class="fa-solid fa-list-check"></i> Directives: <span id="dayLabel" class="text-warning">Loading...</span></h3>
-                    
-                    <div id="schedule-MWF" class="schedule-block" style="display: none;">
+                    <h3><i class="fa-solid fa-list-check"></i> Daily Directives: <span id="dayLabel" class="text-warning">Today</span></h3>
+                    <div class="schedule-block">
+                        
                         <div class="tracker-category">
                             <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
+                            <div class="inline-task-form">
+                                <input type="text" id="input-text-morning" placeholder="Add morning directive..." class="task-input-text">
+                                <input type="number" id="input-xp-morning" value="20" min="5" max="100" class="task-input-xp">
+                                <button class="task-add-btn" data-block="morning"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            <div id="list-container-morning"></div>
                         </div>
+
                         <div class="tracker-category">
                             <h4>Afternoon Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 4:45 PM - Gym</label>
+                            <div class="inline-task-form">
+                                <input type="text" id="input-text-afternoon" placeholder="Add afternoon directive..." class="task-input-text">
+                                <input type="number" id="input-xp-afternoon" value="30" min="5" max="100" class="task-input-xp">
+                                <button class="task-add-btn" data-block="afternoon"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            <div id="list-container-afternoon"></div>
                         </div>
+
                         <div class="tracker-category">
                             <h4>Evening Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 6:00 PM - Maths Coaching</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 7:30 PM - Study Session 5</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
+                            <div class="inline-task-form">
+                                <input type="text" id="input-text-evening" placeholder="Add evening directive..." class="task-input-text">
+                                <input type="number" id="input-xp-evening" value="20" min="5" max="100" class="task-input-xp">
+                                <button class="task-add-btn" data-block="evening"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            <div id="list-container-evening"></div>
                         </div>
-                    </div>
 
-                    <div id="schedule-TTS" class="schedule-block" style="display: none;">
-                        <div class="tracker-category">
-                            <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
-                        </div>
-                        <div class="tracker-category">
-                            <h4>Afternoon Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:15 PM - Study Session 5</label>
-                        </div>
-                        <div class="tracker-category">
-                            <h4>Evening Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 6:00 PM - Gym</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 7:30 PM - Study Session 6</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
-                        </div>
-                    </div>
-
-                    <div id="schedule-S" class="schedule-block" style="display: none;">
-                        <div class="tracker-category">
-                            <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
-                        </div>
-                        <div class="tracker-category">
-                            <h4>Afternoon & Evening (Deep Work)</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="80"> <span class="checkmark"></span> 4:30 PM - Study Session 5 (Long)</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
-                        </div>
                     </div>
                 </section>
 
@@ -187,7 +224,7 @@
                         <div><label id="mastLabel0">Subject 1</label><input type="range" id="mastery0" min="0" max="100" class="neon-slider"></div>
                         <div><label id="mastLabel1">Subject 2</label><input type="range" id="mastery1" min="0" max="100" class="neon-slider"></div>
                         <div><label id="mastLabel2">Subject 3</label><input type="range" id="mastery2" min="0" max="100" class="neon-slider"></div>
-                        <div><label id="mastLabel3">Subject 4</label><input type="range" id="mastery3" min="0" max="100" class="neon-slider"></div>
+                        <div><label id="mastLabel3">Subject 4</label><input type="range" id="mastery4" min="0" max="100" class="neon-slider"></div>
                         <div><label id="mastLabel4">Subject 5</label><input type="range" id="mastery4" min="0" max="100" class="neon-slider"></div>
                     </div>
                 </section>
