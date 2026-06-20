@@ -7,18 +7,23 @@ document.addEventListener("DOMContentLoaded", () => {
         checkboxStates: [], focusLog: [], class11Completed: 0, errorLogs: [],
         backlogItems: [], pyqCounts: { physics: 0, chemistry: 0, maths: 0 },
         subjectMastery: [0, 0, 0, 0, 0], weeklyHours: [0, 0, 0, 0, 0, 0, 0], 
-        lastLoginDate: todayString
+        lastLoginDate: todayString,
+        // NEW: UNIVERSAL CONFIGURATION SETTINGS
+        config: {
+            exam: 'JEE', metric: 'AIR',
+            sub1: 'Physics', sub2: 'Physical Chem', sub3: 'Organic Chem', sub4: 'Inorganic Chem', sub5: 'Algebra',
+            goal1: 'Class 11 Syllabus', goal2: 'Class 12 Syllabus', goal3: 'Mock Test Accuracy'
+        }
     };
 
-    let userData = JSON.parse(localStorage.getItem('jeeNexusData_v7'));
+    let userData = JSON.parse(localStorage.getItem('jeeNexusData_v8'));
     
     if (!userData) {
-        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v6'));
+        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v7'));
         if (oldData) {
             userData = oldData;
-            userData.subjectMastery = (userData.subjectMastery || [0,0,0,0,0,0]).slice(0, 5); 
-            userData.weeklyHours = userData.weeklyHours || [0, 0, 0, 0, 0, 0, 0];
-            localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData));
+            userData.config = userData.config || defaultState.config;
+            localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
         } else {
             userData = defaultState;
         }
@@ -28,7 +33,67 @@ document.addEventListener("DOMContentLoaded", () => {
         userData.checkboxStates = []; userData.tasksCompletedToday = 0;
         userData.discipline = 0; userData.focusLog = []; 
         userData.lastLoginDate = todayString;
-        localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData));
+        localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+    }
+
+    // --- UNIVERSAL SETTINGS ENGINE ---
+    function applyConfig() {
+        const c = userData.config;
+        // Inject Text globally
+        if(document.getElementById('displayExamTitle')) document.getElementById('displayExamTitle').innerText = c.exam;
+        if(document.getElementById('displayMetricPrefix')) document.getElementById('displayMetricPrefix').innerText = c.metric;
+        if(document.getElementById('displayGoal1')) document.getElementById('displayGoal1').innerText = c.goal1;
+        if(document.getElementById('displayGoal2')) document.getElementById('displayGoal2').innerText = c.goal2;
+        if(document.getElementById('displayGoal3')) document.getElementById('displayGoal3').innerText = c.goal3;
+        
+        // Inject Subject Names
+        if(document.getElementById('mastLabel0')) document.getElementById('mastLabel0').innerText = c.sub1;
+        if(document.getElementById('mastLabel1')) document.getElementById('mastLabel1').innerText = c.sub2;
+        if(document.getElementById('mastLabel2')) document.getElementById('mastLabel2').innerText = c.sub3;
+        if(document.getElementById('mastLabel3')) document.getElementById('mastLabel3').innerText = c.sub4;
+        if(document.getElementById('mastLabel4')) document.getElementById('mastLabel4').innerText = c.sub5;
+        
+        if(document.getElementById('pyqTitle0')) document.getElementById('pyqTitle0').innerText = c.sub1 + " Qs";
+        if(document.getElementById('pyqTitle1')) document.getElementById('pyqTitle1').innerText = c.sub2 + " Qs";
+        if(document.getElementById('pyqTitle2')) document.getElementById('pyqTitle2').innerText = c.sub3 + " Qs";
+
+        // Update Radar Chart Labels if it exists
+        if(window.radarChartInstance) {
+            window.radarChartInstance.data.labels = [c.sub1, c.sub2, c.sub3, c.sub4, c.sub5];
+            window.radarChartInstance.update();
+        }
+
+        // Fill settings inputs with current data
+        document.getElementById('confExam').value = c.exam;
+        document.getElementById('confMetric').value = c.metric;
+        document.getElementById('confGoal1').value = c.goal1;
+        document.getElementById('confGoal2').value = c.goal2;
+        document.getElementById('confGoal3').value = c.goal3;
+        document.getElementById('confSub1').value = c.sub1;
+        document.getElementById('confSub2').value = c.sub2;
+        document.getElementById('confSub3').value = c.sub3;
+        document.getElementById('confSub4').value = c.sub4;
+        document.getElementById('confSub5').value = c.sub5;
+    }
+
+    if(document.getElementById('saveConfigBtn')) {
+        document.getElementById('saveConfigBtn').addEventListener('click', () => {
+            userData.config = {
+                exam: document.getElementById('confExam').value || 'Target Exam',
+                metric: document.getElementById('confMetric').value || 'Score',
+                goal1: document.getElementById('confGoal1').value || 'Phase 1',
+                goal2: document.getElementById('confGoal2').value || 'Phase 2',
+                goal3: document.getElementById('confGoal3').value || 'Phase 3',
+                sub1: document.getElementById('confSub1').value || 'Subject 1',
+                sub2: document.getElementById('confSub2').value || 'Subject 2',
+                sub3: document.getElementById('confSub3').value || 'Subject 3',
+                sub4: document.getElementById('confSub4').value || 'Subject 4',
+                sub5: document.getElementById('confSub5').value || 'Subject 5',
+            };
+            localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+            applyConfig();
+            alert("Settings applied globally! Your Tracker OS has been reformatted.");
+        });
     }
 
     function updateUI() {
@@ -46,19 +111,19 @@ document.addEventListener("DOMContentLoaded", () => {
         
         let estimatedRank = 900000 - (userData.xp * 15) - (userData.discipline * 3000) - (userData.streak * 8000);
         if (estimatedRank < 1) estimatedRank = 1;
-        if(els.rank) els.rank.innerText = `AIR ${Math.floor(estimatedRank).toLocaleString()}`;
+        if(els.rank) els.rank.innerText = Math.floor(estimatedRank).toLocaleString();
         
-        localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData));
+        localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
     }
 
-    // --- CLASS 11 CHAPTER MATH ---
+    // --- MILESTONE 1 (Phase 1 Math) ---
     function updateClass11Progress() {
         const chapCount11 = document.getElementById('chapCount11');
         const progBar11 = document.getElementById('progBar11');
         if (!chapCount11 || !progBar11) return;
         
-        let percentage = Math.round((userData.class11Completed / 44) * 100);
-        chapCount11.innerText = `${userData.class11Completed} / 44 Ch`;
+        let percentage = Math.round((userData.class11Completed / 40) * 100);
+        chapCount11.innerText = `${userData.class11Completed} / 40 Ch`;
         progBar11.style.width = `${percentage}%`;
         progBar11.innerText = `${percentage}%`;
     }
@@ -66,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const addChap = document.getElementById('addChap11');
     const subChap = document.getElementById('subChap11');
     if(addChap) addChap.addEventListener('click', () => {
-        if (userData.class11Completed < 44) { userData.class11Completed++; updateClass11Progress(); }
+        if (userData.class11Completed < 40) { userData.class11Completed++; updateClass11Progress(); }
     });
     if(subChap) subChap.addEventListener('click', () => {
         if (userData.class11Completed > 0) { userData.class11Completed--; updateClass11Progress(); }
@@ -74,17 +139,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateClass11Progress();
 
-    // --- DYNAMIC SCHEDULE ---
-    const dayOfWeek = new Date().getDay(); 
-    let activeScheduleId = [1, 3, 5].includes(dayOfWeek) ? 'schedule-MWF' : ([2, 4, 6].includes(dayOfWeek) ? 'schedule-TTS' : 'schedule-S');
-    let headerText = [1, 3, 5].includes(dayOfWeek) ? 'MWF Protocol' : ([2, 4, 6].includes(dayOfWeek) ? 'TTS Protocol' : 'Sunday Deep Work');
-
-    const dayLabel = document.getElementById('dayLabel');
-    const activeBlock = document.getElementById(activeScheduleId);
-    if(dayLabel) dayLabel.innerText = headerText;
-    if(activeBlock) activeBlock.style.display = 'block';
-
-    const checkboxes = document.querySelectorAll(`#${activeScheduleId} .custom-checkbox input[type="checkbox"]`);
+    // --- CHECKBOX LOGIC ---
+    const checkboxes = document.querySelectorAll(`.custom-checkbox input[type="checkbox"]`);
     checkboxes.forEach((box, index) => {
         box.checked = userData.checkboxStates[index] || false;
         box.addEventListener('change', (e) => {
@@ -146,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     if(!userData.focusLog) userData.focusLog = [];
                     userData.focusLog.push({ duration: selectedMinutes, time: timeString });
-                    localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData));
+                    localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
                     renderFocusLog();
                     alert(`Block complete!`);
                     timeLeft = selectedMinutes * 60; startBtn.innerText = "Start Focus";
@@ -179,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         userData.errorLogs.forEach((err, index) => {
             const tr = document.createElement('tr'); tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-            let badgeColor = err.type === 'Conceptual Gap' ? '#ff4a5a' : (err.type === 'Formula Forgotten' ? '#00f2fe' : '#ffc107'); 
+            let badgeColor = err.type === 'Conceptual Gap' ? '#ff4a5a' : (err.type === 'Memory/Fact Forgotten' ? '#00f2fe' : '#ffc107'); 
             tr.innerHTML = `
                 <td style="padding: 0.8rem; font-weight: bold;">${err.chapter}</td>
                 <td style="padding: 0.8rem;"><span style="color: ${badgeColor}; font-size: 0.8rem; border: 1px solid ${badgeColor}; padding: 2px 6px; border-radius: 4px;">${err.type}</span></td>
@@ -191,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.delete-err-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 userData.errorLogs.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1);
-                localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); renderErrorLog();
+                localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); renderErrorLog();
             });
         });
     }
@@ -199,9 +255,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if(addErrorBtn) addErrorBtn.addEventListener('click', () => {
         const errChap = document.getElementById('errChap'); const errNote = document.getElementById('errNote');
         const errType = document.getElementById('errType');
-        if (!errChap.value.trim() || !errNote.value.trim()) return alert('Fill out Chapter and Correction note!');
+        if (!errChap.value.trim() || !errNote.value.trim()) return alert('Fill out Topic and Correction note!');
         userData.errorLogs.push({ chapter: errChap.value.trim(), type: errType.value, note: errNote.value.trim() });
-        userData.xp += 50; localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData));
+        userData.xp += 50; localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
         errChap.value = ''; errNote.value = ''; renderErrorLog(); updateUI();
     });
     renderErrorLog();
@@ -225,7 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.claim-bounty-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 userData.xp += parseInt(userData.backlogItems.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1)[0].xp);
-                localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); renderBacklogs(); updateUI();
+                localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); renderBacklogs(); updateUI();
             });
         });
     }
@@ -234,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const backlogInput = document.getElementById('backlogInput'); const backlogXP = document.getElementById('backlogXP');
         if (!backlogInput.value.trim()) return;
         userData.backlogItems.push({ topic: backlogInput.value.trim(), xp: backlogXP.value || 100 });
-        localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); backlogInput.value = ''; renderBacklogs();
+        localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); backlogInput.value = ''; renderBacklogs();
     });
     renderBacklogs();
 
@@ -252,13 +308,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.pyq-add').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const sub = e.currentTarget.getAttribute('data-subject');
-            if (userData.pyqCounts[sub] < 300) { userData.pyqCounts[sub] += 5; localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); updatePYQ(); }
+            if (userData.pyqCounts[sub] < 300) { userData.pyqCounts[sub] += 5; localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); updatePYQ(); }
         });
     });
     document.querySelectorAll('.pyq-sub').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const sub = e.currentTarget.getAttribute('data-subject');
-            if (userData.pyqCounts[sub] > 0) { userData.pyqCounts[sub] = Math.max(0, userData.pyqCounts[sub] - 5); localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); updatePYQ(); }
+            if (userData.pyqCounts[sub] > 0) { userData.pyqCounts[sub] = Math.max(0, userData.pyqCounts[sub] - 5); localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); updatePYQ(); }
         });
     });
     updatePYQ();
@@ -268,9 +324,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const ctxRadar = document.getElementById('subjectRadar');
     if (ctxRadar) {
-        let radarChart = new Chart(ctxRadar.getContext('2d'), {
+        window.radarChartInstance = new Chart(ctxRadar.getContext('2d'), {
             type: 'radar',
-            data: { labels: ['Physics', 'Physical Chem', 'Organic Chem', 'Inorganic Chem', 'Maths'],
+            data: { labels: [userData.config.sub1, userData.config.sub2, userData.config.sub3, userData.config.sub4, userData.config.sub5],
                     datasets: [{ label: 'Mastery', data: userData.subjectMastery, backgroundColor: 'rgba(0, 242, 254, 0.2)', borderColor: '#00f2fe', pointBackgroundColor: '#00f2fe', borderWidth: 2 }] },
             options: { scales: { r: { ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } }
         });
@@ -279,7 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if(slider) {
                 slider.value = userData.subjectMastery[i];
                 slider.addEventListener('input', (e) => {
-                    userData.subjectMastery[i] = parseInt(e.target.value); localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); radarChart.update();
+                    userData.subjectMastery[i] = parseInt(e.target.value); localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); window.radarChartInstance.update();
                 });
             }
         }
@@ -299,25 +355,38 @@ document.addEventListener("DOMContentLoaded", () => {
             if(input) {
                 input.value = userData.weeklyHours[i];
                 input.addEventListener('input', (e) => {
-                    userData.weeklyHours[i] = parseFloat(e.target.value) || 0; localStorage.setItem('jeeNexusData_v7', JSON.stringify(userData)); barChart.update();
+                    userData.weeklyHours[i] = parseFloat(e.target.value) || 0; localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); barChart.update();
                 });
             }
         }
     }
 
-    // --- NAVIGATION TOGGLE ---
+    // --- NAVIGATION TOGGLE & INITIALIZATION ---
+    applyConfig(); // Re-labels everything on boot
+
     const navItems = document.querySelectorAll('.nav-links li');
     const allCards = document.querySelectorAll('.content-grid .card');
-    allCards.forEach(card => { if (card.classList.contains('tracker-card')) card.style.display = 'none'; });
+    
+    // Default boot view: Hide Tracker and Settings, show Dashboard items
+    allCards.forEach(card => { 
+        if (card.classList.contains('tracker-card') || card.classList.contains('settings-card')) {
+            card.style.display = 'none'; 
+        }
+    });
 
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             navItems.forEach(nav => nav.classList.remove('active')); item.classList.add('active');
             const target = item.getAttribute('data-target');
+            
             allCards.forEach(card => {
-                card.style.display = (target === 'all') 
-                    ? (card.classList.contains('tracker-card') ? 'none' : 'block') 
-                    : (card.classList.contains(target) ? 'block' : 'none');
+                if (target === 'all') {
+                    // Dashboard view hides Tracker and Settings
+                    card.style.display = (card.classList.contains('tracker-card') || card.classList.contains('settings-card')) ? 'none' : 'block';
+                } else {
+                    // Specific tab view
+                    card.style.display = card.classList.contains(target) ? 'block' : 'none';
+                }
             });
         });
     });
