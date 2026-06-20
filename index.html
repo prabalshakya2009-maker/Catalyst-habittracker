@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catalyst</title>
+    <title>Nexus OS | Universal Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,18 +20,19 @@
         <nav class="sidebar glass">
             <div class="brand">
                 <i class="fa-solid fa-atom neon-text"></i>
-                <h2><span class="neon-text">CATALYST</span></h2>
+                <h2>NEXUS <span class="neon-text">OS</span></h2>
             </div>
             <ul class="nav-links">
                 <li class="active" data-target="all"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
                 <li data-target="tracker-card"><i class="fa-solid fa-list-check"></i> Tracker</li>
                 <li data-target="chart-card"><i class="fa-solid fa-chart-pie"></i> Analytics</li>
                 <li data-target="goals-card"><i class="fa-solid fa-bullseye"></i> Goals</li>
+                <li data-target="settings-card"><i class="fa-solid fa-gear"></i> Settings</li>
             </ul>
             <div class="rank-predictor glass">
-                <p class="predictor-title">PREDICTED JEE RANK</p>
-                <h3 id="predictedRankDisplay" class="neon-text">AIR 900,000</h3>
-                <p class="predictor-subtext">Grow XP & Discipline to rank up!</p>
+                <p class="predictor-title">PREDICTED <span id="displayExamTitle">JEE</span> RESULT</p>
+                <h3 class="neon-text"><span id="displayMetricPrefix">AIR</span> <span id="predictedRankDisplay">900,000</span></h3>
+                <p class="predictor-subtext">Grow XP & Discipline to improve!</p>
             </div>
         </nav>
 
@@ -69,12 +70,10 @@
                 <section class="glass card focus-card dashboard-item">
                     <h3><i class="fa-solid fa-brain"></i> Deep Work Session</h3>
                     <select id="blockSelector" class="glass-select">
-                        <option value="115">Study Session 1 (1 hr 55 min)</option>
-                        <option value="120" selected>Study Session 2 (2 Hours)</option>
-                        <option value="90">Study Session 3 (1 hr 30 min)</option>
-                        <option value="150">Study Session 4 (2 hr 30 min)</option>
-                        <option value="75">Study Session 5/6 (1 hr 15 min)</option>
-                        <option value="50">Standard Block (50 min)</option>
+                        <option value="120" selected>Standard Block (2 Hours)</option>
+                        <option value="90">Focus Block (1 hr 30 min)</option>
+                        <option value="60">Short Block (1 Hour)</option>
+                        <option value="50">Pomodoro (50 min)</option>
                     </select>
                     <div class="timer-display" id="timer">120:00</div>
                     <div class="timer-controls">
@@ -88,69 +87,24 @@
                 </section>
 
                 <section class="glass card directives-card dashboard-item">
-                    <h3><i class="fa-solid fa-list-check"></i> Directives: <span id="dayLabel" class="text-warning">Loading...</span></h3>
-                    
-                    <div id="schedule-MWF" class="schedule-block" style="display: none;">
+                    <h3><i class="fa-solid fa-list-check"></i> Daily Directives: <span id="dayLabel" class="text-warning">Today</span></h3>
+                    <div class="schedule-block">
                         <div class="tracker-category">
                             <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> Wake Up & Hydrate</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> Deep Work Session 1</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> Light Exercise / Walk</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> Deep Work Session 2</label>
                         </div>
                         <div class="tracker-category">
                             <h4>Afternoon Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 4:45 PM - Gym</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> Deep Work Session 3</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> Active Recall / Flashcards</label>
                         </div>
                         <div class="tracker-category">
                             <h4>Evening Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 6:00 PM - Maths Coaching</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 7:30 PM - Study Session 5</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
-                        </div>
-                    </div>
-
-                    <div id="schedule-TTS" class="schedule-block" style="display: none;">
-                        <div class="tracker-category">
-                            <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
-                        </div>
-                        <div class="tracker-category">
-                            <h4>Afternoon Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:15 PM - Study Session 5</label>
-                        </div>
-                        <div class="tracker-category">
-                            <h4>Evening Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 6:00 PM - Gym</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 7:30 PM - Study Session 6</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
-                        </div>
-                    </div>
-
-                    <div id="schedule-S" class="schedule-block" style="display: none;">
-                        <div class="tracker-category">
-                            <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
-                        </div>
-                        <div class="tracker-category">
-                            <h4>Afternoon & Evening (Deep Work)</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="80"> <span class="checkmark"></span> 4:30 PM - Study Session 5 (Long)</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> Deep Work Session 4</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> Plan Tomorrow & Sleep</label>
                         </div>
                     </div>
                 </section>
@@ -159,10 +113,10 @@
                     <h3><i class="fa-solid fa-route"></i> Long-Term Trajectory</h3>
                     <div class="goal-item">
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                            <span>Class 11 Syllabus</span>
+                            <span id="displayGoal1">Phase 1 Syllabus</span>
                             <div class="chapter-controls">
                                 <button id="subChap11" class="chap-btn">-</button>
-                                <span id="chapCount11" style="font-size: 0.75rem; color: var(--primary-neon); width: 70px; text-align: center;">0 / 44 Ch</span>
+                                <span id="chapCount11" style="font-size: 0.75rem; color: var(--primary-neon); width: 70px; text-align: center;">0 / 40 Ch</span>
                                 <button id="addChap11" class="chap-btn">+</button>
                             </div>
                         </div>
@@ -171,11 +125,11 @@
                         </div>
                     </div>
                     <div class="goal-item">
-                        <span>Class 12 Syllabus</span>
+                        <span id="displayGoal2">Phase 2 Syllabus</span>
                         <div class="progress-container"><div class="progress-bar neon-bg-secondary" style="width: 0%;">0%</div></div>
                     </div>
                     <div class="goal-item">
-                        <span>Mock Test Accuracy</span>
+                        <span id="displayGoal3">Mock Test Accuracy</span>
                         <div class="progress-container"><div class="progress-bar text-warning" style="background-color: var(--warning); width: 0%;">0%</div></div>
                     </div>
                 </section>
@@ -185,11 +139,11 @@
                     <canvas id="subjectRadar"></canvas>
                     
                     <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.75rem; color: var(--text-muted);">
-                        <div><label>Physics</label><input type="range" id="mastery0" min="0" max="100" class="neon-slider"></div>
-                        <div><label>Physical Chem</label><input type="range" id="mastery1" min="0" max="100" class="neon-slider"></div>
-                        <div><label>Organic Chem</label><input type="range" id="mastery2" min="0" max="100" class="neon-slider"></div>
-                        <div><label>Inorganic Chem</label><input type="range" id="mastery3" min="0" max="100" class="neon-slider"></div>
-                        <div><label>Maths</label><input type="range" id="mastery4" min="0" max="100" class="neon-slider"></div>
+                        <div><label id="mastLabel0">Subject 1</label><input type="range" id="mastery0" min="0" max="100" class="neon-slider"></div>
+                        <div><label id="mastLabel1">Subject 2</label><input type="range" id="mastery1" min="0" max="100" class="neon-slider"></div>
+                        <div><label id="mastLabel2">Subject 3</label><input type="range" id="mastery2" min="0" max="100" class="neon-slider"></div>
+                        <div><label id="mastLabel3">Subject 4</label><input type="range" id="mastery3" min="0" max="100" class="neon-slider"></div>
+                        <div><label id="mastLabel4">Subject 5</label><input type="range" id="mastery4" min="0" max="100" class="neon-slider"></div>
                     </div>
                 </section>
 
@@ -210,13 +164,12 @@
 
                 <section class="glass card tracker-card span-2" style="display: none;">
                     <h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--secondary-neon);"></i> The Strategic Error Log</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Review this list immediately before every mock test.</p>
                     <div style="display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.5rem;">
-                        <input type="text" id="errChap" placeholder="Chapter (e.g., Kinematics)" style="flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
+                        <input type="text" id="errChap" placeholder="Topic / Chapter" style="flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
                         <select id="errType" style="flex: 1; min-width: 150px; background: #0f0f15; border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
                             <option value="Conceptual Gap">Conceptual Gap</option>
                             <option value="Silly/Calculation Error">Silly/Calculation Error</option>
-                            <option value="Formula Forgotten">Formula Forgotten</option>
+                            <option value="Memory/Fact Forgotten">Memory/Fact Forgotten</option>
                         </select>
                         <input type="text" id="errNote" placeholder="What went wrong?" style="flex: 2; min-width: 200px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
                         <button id="addErrorBtn" class="primary-btn" style="padding: 0.6rem 1.5rem;">Log (+50 XP)</button>
@@ -225,7 +178,7 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--glass-border); color: var(--primary-neon);">
-                                    <th style="padding: 0.8rem;">Chapter</th>
+                                    <th style="padding: 0.8rem;">Topic</th>
                                     <th style="padding: 0.8rem;">Error Type</th>
                                     <th style="padding: 0.8rem;">Correction Note</th>
                                     <th style="padding: 0.8rem; text-align: center;">Action</th>
@@ -238,7 +191,6 @@
 
                 <section class="glass card tracker-card" style="display: none;">
                     <h3><i class="fa-solid fa-crosshairs" style="color: var(--secondary-neon);"></i> Backlog Bounty Board</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Clear missing topics. Earn massive XP.</p>
                     <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
                         <input type="text" id="backlogInput" placeholder="Topic..." style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
                         <input type="number" id="backlogXP" placeholder="XP" value="200" style="width: 70px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
@@ -248,11 +200,11 @@
                 </section>
 
                 <section class="glass card tracker-card span-3" style="display: none;">
-                    <h3><i class="fa-solid fa-bullseye" style="color: var(--primary-neon);"></i> Daily PYQ & Module Grinder</h3>
+                    <h3><i class="fa-solid fa-bullseye" style="color: var(--primary-neon);"></i> Daily Question Grinder</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
                         <div class="goal-item">
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                                <span>Physics Questions</span>
+                                <span id="pyqTitle0">Subject 1 Qs</span>
                                 <div class="chapter-controls">
                                     <button class="chap-btn pyq-sub" data-subject="physics">-</button>
                                     <span id="pyqCountphysics" style="font-size: 0.75rem; color: var(--primary-neon); width: 80px; text-align: center;">0 / 300 Qs</span>
@@ -263,7 +215,7 @@
                         </div>
                         <div class="goal-item">
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                                <span>Chemistry Questions</span>
+                                <span id="pyqTitle1">Subject 2 Qs</span>
                                 <div class="chapter-controls">
                                     <button class="chap-btn pyq-sub" data-subject="chemistry">-</button>
                                     <span id="pyqCountchemistry" style="font-size: 0.75rem; color: var(--secondary-neon); width: 80px; text-align: center;">0 / 300 Qs</span>
@@ -274,7 +226,7 @@
                         </div>
                         <div class="goal-item">
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                                <span>Maths Questions</span>
+                                <span id="pyqTitle2">Subject 3 Qs</span>
                                 <div class="chapter-controls">
                                     <button class="chap-btn pyq-sub" data-subject="maths">-</button>
                                     <span id="pyqCountmaths" style="font-size: 0.75rem; color: var(--warning); width: 80px; text-align: center;">0 / 300 Qs</span>
@@ -283,6 +235,50 @@
                             </div>
                             <div class="progress-container"><div class="progress-bar text-warning" id="pyqBarmaths" style="background-color: var(--warning); width: 0%;">0%</div></div>
                         </div>
+                    </div>
+                </section>
+
+                <section class="glass card settings-card span-3" style="display: none;">
+                    <h3><i class="fa-solid fa-gear" style="color: var(--primary-neon);"></i> System Configuration</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Customize Nexus OS to track any exam or academic goal.</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                        
+                        <div>
+                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Exam Identity</h4>
+                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Target Exam (e.g., JEE, NEET, UPSC, SAT)</label>
+                            <input type="text" id="confExam" class="glass-select" style="margin-bottom: 15px;">
+                            
+                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Primary Metric (e.g., AIR, Marks, %)</label>
+                            <input type="text" id="confMetric" class="glass-select" style="margin-bottom: 15px;">
+                        </div>
+
+                        <div>
+                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Milestone Names</h4>
+                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Milestone 1 (e.g., Class 11, Prelims)</label>
+                            <input type="text" id="confGoal1" class="glass-select" style="margin-bottom: 15px;">
+                            
+                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Milestone 2 (e.g., Class 12, Mains)</label>
+                            <input type="text" id="confGoal2" class="glass-select" style="margin-bottom: 15px;">
+                            
+                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Milestone 3 (e.g., Mock Test Accuracy)</label>
+                            <input type="text" id="confGoal3" class="glass-select" style="margin-bottom: 15px;">
+                        </div>
+
+                        <div>
+                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Core Subjects</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <input type="text" id="confSub1" class="glass-select" placeholder="Subject 1">
+                                <input type="text" id="confSub2" class="glass-select" placeholder="Subject 2">
+                                <input type="text" id="confSub3" class="glass-select" placeholder="Subject 3">
+                                <input type="text" id="confSub4" class="glass-select" placeholder="Subject 4">
+                                <input type="text" id="confSub5" class="glass-select" placeholder="Subject 5">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <button id="saveConfigBtn" class="btn primary-btn" style="padding: 10px 40px; font-size: 1.1rem;">Save & Apply Globally</button>
                     </div>
                 </section>
 
