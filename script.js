@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
             sub1: 'Physics', sub2: 'Physical Chem', sub3: 'Organic Chem', sub4: 'Inorganic Chem', sub5: 'Algebra',
             goal1: 'Class 11 Syllabus', goal2: 'Class 12 Syllabus', goal3: 'Mock Test Accuracy'
         },
-        // NEW V9 DYNAMIC DIRECTIVES SCHEMA
         directives: {
             morning: [
                 { id: 1, text: "Wake Up & Hydrate", xp: 10, completed: false },
@@ -31,9 +30,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let userData = JSON.parse(localStorage.getItem('jeeNexusData_v9'));
     
     if (!userData) {
-        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v8'));
+        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v8')) || JSON.parse(localStorage.getItem('jeeNexusData_v7'));
         if (oldData) {
             userData = oldData;
+            userData.config = userData.config || defaultState.config;
             userData.directives = userData.directives || defaultState.directives;
             localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
         } else {
@@ -41,7 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Daily reset handling: Clear checkmarks, keep the task architecture intact
     if (userData.lastLoginDate !== todayString) {
         userData.focusLog = []; 
         userData.lastLoginDate = todayString;
@@ -69,25 +68,22 @@ document.addEventListener("DOMContentLoaded", () => {
             userData.directives[block].forEach(task => {
                 const row = document.createElement('div');
                 row.className = 'directive-row';
-
                 row.innerHTML = `
                     <label class="custom-checkbox">
                         <input type="checkbox" class="directive-checkbox" data-block="${block}" data-id="${task.id}" ${task.completed ? 'checked' : ''}>
                         <span class="checkmark"></span>
-                        <span class="${task.completed ? 'completed-text-text' : ''}">${task.text} <span style="color:var(--primary-neon); font-size:0.7rem;">(+${task.xp}XP)</span></span>
+                        <span class="${task.completed ? 'completed-task-text' : ''}">${task.text} <span style="color:var(--primary-neon); font-size:0.7rem;">(+${task.xp}XP)</span></span>
                     </label>
                     <button class="task-delete-btn" data-block="${block}" data-id="${task.id}"><i class="fa-solid fa-trash-can"></i></button>
                 `;
                 container.appendChild(row);
             });
         });
-
         setupDirectiveListeners();
         calculateDisciplineScore();
     }
 
     function setupDirectiveListeners() {
-        // Checkbox Toggle Listener
         document.querySelectorAll('.directive-checkbox').forEach(box => {
             box.addEventListener('change', (e) => {
                 const block = e.target.getAttribute('data-block');
@@ -102,13 +98,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         userData.xp -= task.xp;
                     }
                     if (userData.xp < 0) userData.xp = 0;
-                    
-                    // Level Up Calculations
                     if (userData.xp >= (userData.level * 1000)) { 
                         userData.level++; 
                         alert(`🔥 Level Up! You are now Level ${userData.level}`); 
                     }
-                    
                     calculateDisciplineScore();
                     updateUI();
                     renderDirectives();
@@ -116,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // Delete Task Button Listener
         document.querySelectorAll('.task-delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const button = e.currentTarget;
@@ -152,7 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
     }
 
-    // Form submission processing logic for handling '+' clicks
     document.querySelectorAll('.task-add-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const block = e.currentTarget.getAttribute('data-block');
@@ -162,16 +153,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!textInput || !textInput.value.trim()) return alert('Enter a valid task description!');
 
             const newTask = {
-                id: Date.now() + Math.floor(Math.random() * 1000), // Unique identification timestamp
+                id: Date.now() + Math.floor(Math.random() * 1000), 
                 text: textInput.value.trim(),
                 xp: parseInt(xpInput.value) || 20,
                 completed: false
             };
-
             userData.directives[block].push(newTask);
-            textInput.value = ''; // Input reset processing
-            
+            textInput.value = ''; 
             renderDirectives();
+            localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
         });
     });
 
@@ -388,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if(!backlogList) return;
         backlogList.innerHTML = '';
         if (!userData.backlogItems || userData.backlogItems.length === 0) {
-            logContainer.innerHTML = '<li style="color: var(--text-muted);">No backlogs! You are perfectly on schedule.</li>'; return;
+            backlogList.innerHTML = '<li style="color: var(--text-muted);">No backlogs! You are perfectly on schedule.</li>'; return;
         }
         userData.backlogItems.forEach((item, index) => {
             const li = document.createElement('li'); li.style.justifyContent = 'space-between';
@@ -481,7 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- NAVIGATION TOGGLE & INITIALIZATION ---
     applyConfig(); 
-    renderDirectives(); // Dynamic item initialization on boot
+    renderDirectives(); 
     updateUI();
 
     const navItems = document.querySelectorAll('.nav-links li');
