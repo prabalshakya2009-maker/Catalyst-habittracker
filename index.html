@@ -87,24 +87,69 @@
                 </section>
 
                 <section class="glass card directives-card dashboard-item">
-                    <h3><i class="fa-solid fa-list-check"></i> Daily Directives: <span id="dayLabel" class="text-warning">Today</span></h3>
-                    <div class="schedule-block">
+                    <h3><i class="fa-solid fa-list-check"></i> Directives: <span id="dayLabel" class="text-warning">Loading...</span></h3>
+                    
+                    <div id="schedule-MWF" class="schedule-block" style="display: none;">
                         <div class="tracker-category">
                             <h4>Morning Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> Wake Up & Hydrate</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> Deep Work Session 1</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> Light Exercise / Walk</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> Deep Work Session 2</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
                         </div>
                         <div class="tracker-category">
                             <h4>Afternoon Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> Deep Work Session 3</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> Active Recall / Flashcards</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 4:45 PM - Gym</label>
                         </div>
                         <div class="tracker-category">
                             <h4>Evening Block</h4>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> Deep Work Session 4</label>
-                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> Plan Tomorrow & Sleep</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 6:00 PM - Maths Coaching</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 7:30 PM - Study Session 5</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
+                        </div>
+                    </div>
+
+                    <div id="schedule-TTS" class="schedule-block" style="display: none;">
+                        <div class="tracker-category">
+                            <h4>Morning Block</h4>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
+                        </div>
+                        <div class="tracker-category">
+                            <h4>Afternoon Block</h4>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:15 PM - Study Session 5</label>
+                        </div>
+                        <div class="tracker-category">
+                            <h4>Evening Block</h4>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="20"> <span class="checkmark"></span> 6:00 PM - Gym</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 7:30 PM - Study Session 6</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
+                        </div>
+                    </div>
+
+                    <div id="schedule-S" class="schedule-block" style="display: none;">
+                        <div class="tracker-category">
+                            <h4>Morning Block</h4>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 4:00 AM - Wake Up</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 4:30 AM - Study Session 1</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="15"> <span class="checkmark"></span> 6:30 AM - Park / Walk</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="30"> <span class="checkmark"></span> 8:00 AM - Study Session 2</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="25"> <span class="checkmark"></span> 10:30 AM - Study Session 3</label>
+                        </div>
+                        <div class="tracker-category">
+                            <h4>Afternoon & Evening (Deep Work)</h4>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="40"> <span class="checkmark"></span> 12:30 PM - Study Session 4</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 3:00 PM - Sleep / Nap</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="80"> <span class="checkmark"></span> 4:30 PM - Study Session 5 (Long)</label>
+                            <label class="custom-checkbox"><input type="checkbox" data-xp="10"> <span class="checkmark"></span> 9:00 PM - Sleep</label>
                         </div>
                     </div>
                 </section>
