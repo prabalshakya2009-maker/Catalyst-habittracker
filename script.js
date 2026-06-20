@@ -3,50 +3,187 @@ document.addEventListener("DOMContentLoaded", () => {
     const todayString = new Date().toDateString(); 
     
     const defaultState = {
-        xp: 0, level: 1, streak: 0, discipline: 0, tasksCompletedToday: 0,
-        checkboxStates: [], focusLog: [], class11Completed: 0, errorLogs: [],
+        xp: 0, level: 1, streak: 0, discipline: 0, 
+        focusLog: [], class11Completed: 0, errorLogs: [],
         backlogItems: [], pyqCounts: { physics: 0, chemistry: 0, maths: 0 },
         subjectMastery: [0, 0, 0, 0, 0], weeklyHours: [0, 0, 0, 0, 0, 0, 0], 
         lastLoginDate: todayString,
-        // NEW: UNIVERSAL CONFIGURATION SETTINGS
         config: {
             exam: 'JEE', metric: 'AIR',
             sub1: 'Physics', sub2: 'Physical Chem', sub3: 'Organic Chem', sub4: 'Inorganic Chem', sub5: 'Algebra',
             goal1: 'Class 11 Syllabus', goal2: 'Class 12 Syllabus', goal3: 'Mock Test Accuracy'
+        },
+        // NEW V9 DYNAMIC DIRECTIVES SCHEMA
+        directives: {
+            morning: [
+                { id: 1, text: "Wake Up & Hydrate", xp: 10, completed: false },
+                { id: 2, text: "Deep Work Session 1", xp: 30, completed: false }
+            ],
+            afternoon: [
+                { id: 3, text: "Deep Work Session 2", xp: 40, completed: false }
+            ],
+            evening: [
+                { id: 4, text: "Plan Tomorrow & Sleep", xp: 20, completed: false }
+            ]
         }
     };
 
-    let userData = JSON.parse(localStorage.getItem('jeeNexusData_v8'));
+    let userData = JSON.parse(localStorage.getItem('jeeNexusData_v9'));
     
     if (!userData) {
-        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v7'));
+        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v8'));
         if (oldData) {
             userData = oldData;
-            userData.config = userData.config || defaultState.config;
-            localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+            userData.directives = userData.directives || defaultState.directives;
+            localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
         } else {
             userData = defaultState;
         }
     }
 
+    // Daily reset handling: Clear checkmarks, keep the task architecture intact
     if (userData.lastLoginDate !== todayString) {
-        userData.checkboxStates = []; userData.tasksCompletedToday = 0;
-        userData.discipline = 0; userData.focusLog = []; 
+        userData.focusLog = []; 
         userData.lastLoginDate = todayString;
-        localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+        if(userData.directives) {
+            Object.keys(userData.directives).forEach(block => {
+                userData.directives[block].forEach(task => task.completed = false);
+            });
+        }
+        calculateDisciplineScore();
+        localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
     }
+
+    // --- DYNAMIC DIRECTIVES ENGINE ---
+    function renderDirectives() {
+        ['morning', 'afternoon', 'evening'].forEach(block => {
+            const container = document.getElementById(`list-container-${block}`);
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (userData.directives[block].length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); font-size:0.8rem; padding: 5px 0;">No directives listed. Click + to add.</p>`;
+                return;
+            }
+
+            userData.directives[block].forEach(task => {
+                const row = document.createElement('div');
+                row.className = 'directive-row';
+
+                row.innerHTML = `
+                    <label class="custom-checkbox">
+                        <input type="checkbox" class="directive-checkbox" data-block="${block}" data-id="${task.id}" ${task.completed ? 'checked' : ''}>
+                        <span class="checkmark"></span>
+                        <span class="${task.completed ? 'completed-text-text' : ''}">${task.text} <span style="color:var(--primary-neon); font-size:0.7rem;">(+${task.xp}XP)</span></span>
+                    </label>
+                    <button class="task-delete-btn" data-block="${block}" data-id="${task.id}"><i class="fa-solid fa-trash-can"></i></button>
+                `;
+                container.appendChild(row);
+            });
+        });
+
+        setupDirectiveListeners();
+        calculateDisciplineScore();
+    }
+
+    function setupDirectiveListeners() {
+        // Checkbox Toggle Listener
+        document.querySelectorAll('.directive-checkbox').forEach(box => {
+            box.addEventListener('change', (e) => {
+                const block = e.target.getAttribute('data-block');
+                const id = parseInt(e.target.getAttribute('data-id'));
+                const task = userData.directives[block].find(t => t.id === id);
+
+                if (task) {
+                    task.completed = e.target.checked;
+                    if (task.completed) {
+                        userData.xp += task.xp;
+                    } else {
+                        userData.xp -= task.xp;
+                    }
+                    if (userData.xp < 0) userData.xp = 0;
+                    
+                    // Level Up Calculations
+                    if (userData.xp >= (userData.level * 1000)) { 
+                        userData.level++; 
+                        alert(`🔥 Level Up! You are now Level ${userData.level}`); 
+                    }
+                    
+                    calculateDisciplineScore();
+                    updateUI();
+                    renderDirectives();
+                }
+            });
+        });
+
+        // Delete Task Button Listener
+        document.querySelectorAll('.task-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const button = e.currentTarget;
+                const block = button.getAttribute('data-block');
+                const id = parseInt(button.getAttribute('data-id'));
+                
+                const taskIndex = userData.directives[block].findIndex(t => t.id === id);
+                if (taskIndex !== -1) {
+                    const task = userData.directives[block][taskIndex];
+                    if (task.completed) {
+                        userData.xp -= task.xp;
+                        if (userData.xp < 0) userData.xp = 0;
+                    }
+                    userData.directives[block].splice(taskIndex, 1);
+                    calculateDisciplineScore();
+                    updateUI();
+                    renderDirectives();
+                }
+            });
+        });
+    }
+
+    function calculateDisciplineScore() {
+        let total = 0;
+        let completed = 0;
+        ['morning', 'afternoon', 'evening'].forEach(block => {
+            total += userData.directives[block].length;
+            completed += userData.directives[block].filter(t => t.completed).length;
+        });
+        userData.discipline = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const scoreEl = document.getElementById('disciplineScore');
+        if (scoreEl) scoreEl.innerText = `${userData.discipline}%`;
+        localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
+    }
+
+    // Form submission processing logic for handling '+' clicks
+    document.querySelectorAll('.task-add-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const block = e.currentTarget.getAttribute('data-block');
+            const textInput = document.getElementById(`input-text-${block}`);
+            const xpInput = document.getElementById(`input-xp-${block}`);
+
+            if (!textInput || !textInput.value.trim()) return alert('Enter a valid task description!');
+
+            const newTask = {
+                id: Date.now() + Math.floor(Math.random() * 1000), // Unique identification timestamp
+                text: textInput.value.trim(),
+                xp: parseInt(xpInput.value) || 20,
+                completed: false
+            };
+
+            userData.directives[block].push(newTask);
+            textInput.value = ''; // Input reset processing
+            
+            renderDirectives();
+        });
+    });
 
     // --- UNIVERSAL SETTINGS ENGINE ---
     function applyConfig() {
         const c = userData.config;
-        // Inject Text globally
         if(document.getElementById('displayExamTitle')) document.getElementById('displayExamTitle').innerText = c.exam;
         if(document.getElementById('displayMetricPrefix')) document.getElementById('displayMetricPrefix').innerText = c.metric;
         if(document.getElementById('displayGoal1')) document.getElementById('displayGoal1').innerText = c.goal1;
         if(document.getElementById('displayGoal2')) document.getElementById('displayGoal2').innerText = c.goal2;
         if(document.getElementById('displayGoal3')) document.getElementById('displayGoal3').innerText = c.goal3;
         
-        // Inject Subject Names
         if(document.getElementById('mastLabel0')) document.getElementById('mastLabel0').innerText = c.sub1;
         if(document.getElementById('mastLabel1')) document.getElementById('mastLabel1').innerText = c.sub2;
         if(document.getElementById('mastLabel2')) document.getElementById('mastLabel2').innerText = c.sub3;
@@ -57,13 +194,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if(document.getElementById('pyqTitle1')) document.getElementById('pyqTitle1').innerText = c.sub2 + " Qs";
         if(document.getElementById('pyqTitle2')) document.getElementById('pyqTitle2').innerText = c.sub3 + " Qs";
 
-        // Update Radar Chart Labels if it exists
         if(window.radarChartInstance) {
             window.radarChartInstance.data.labels = [c.sub1, c.sub2, c.sub3, c.sub4, c.sub5];
             window.radarChartInstance.update();
         }
 
-        // Fill settings inputs with current data
         document.getElementById('confExam').value = c.exam;
         document.getElementById('confMetric').value = c.metric;
         document.getElementById('confGoal1').value = c.goal1;
@@ -90,9 +225,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 sub4: document.getElementById('confSub4').value || 'Subject 4',
                 sub5: document.getElementById('confSub5').value || 'Subject 5',
             };
-            localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+            localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
             applyConfig();
-            alert("Settings applied globally! Your Tracker OS has been reformatted.");
+            alert("Settings applied globally!");
         });
     }
 
@@ -113,10 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (estimatedRank < 1) estimatedRank = 1;
         if(els.rank) els.rank.innerText = Math.floor(estimatedRank).toLocaleString();
         
-        localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+        localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
     }
 
-    // --- MILESTONE 1 (Phase 1 Math) ---
+    // --- MILESTONE PROGRESS ---
     function updateClass11Progress() {
         const chapCount11 = document.getElementById('chapCount11');
         const progBar11 = document.getElementById('progBar11');
@@ -138,23 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateClass11Progress();
-
-    // --- CHECKBOX LOGIC ---
-    const checkboxes = document.querySelectorAll(`.custom-checkbox input[type="checkbox"]`);
-    checkboxes.forEach((box, index) => {
-        box.checked = userData.checkboxStates[index] || false;
-        box.addEventListener('change', (e) => {
-            const xpGained = parseInt(e.target.getAttribute('data-xp'));
-            if (e.target.checked) { userData.xp += xpGained; userData.tasksCompletedToday++; userData.checkboxStates[index] = true; } 
-            else { userData.xp -= xpGained; userData.tasksCompletedToday--; userData.checkboxStates[index] = false; }
-            if (userData.tasksCompletedToday < 0) userData.tasksCompletedToday = 0;
-            userData.discipline = Math.round((userData.tasksCompletedToday / checkboxes.length) * 100);
-            if (userData.xp >= (userData.level * 1000)) { userData.level++; alert(`🔥 Level Up!`); }
-            updateUI();
-        });
-    });
-
-    updateUI();
 
     // --- POMODORO TIMER ---
     const blockSelector = document.getElementById('blockSelector');
@@ -202,7 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     if(!userData.focusLog) userData.focusLog = [];
                     userData.focusLog.push({ duration: selectedMinutes, time: timeString });
-                    localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+                    localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
                     renderFocusLog();
                     alert(`Block complete!`);
                     timeLeft = selectedMinutes * 60; startBtn.innerText = "Start Focus";
@@ -247,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.delete-err-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 userData.errorLogs.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1);
-                localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); renderErrorLog();
+                localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); renderErrorLog();
             });
         });
     }
@@ -257,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const errType = document.getElementById('errType');
         if (!errChap.value.trim() || !errNote.value.trim()) return alert('Fill out Topic and Correction note!');
         userData.errorLogs.push({ chapter: errChap.value.trim(), type: errType.value, note: errNote.value.trim() });
-        userData.xp += 50; localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData));
+        userData.xp += 50; localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData));
         errChap.value = ''; errNote.value = ''; renderErrorLog(); updateUI();
     });
     renderErrorLog();
@@ -270,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if(!backlogList) return;
         backlogList.innerHTML = '';
         if (!userData.backlogItems || userData.backlogItems.length === 0) {
-            backlogList.innerHTML = '<li style="color: var(--text-muted);">No backlogs! You are perfectly on schedule.</li>'; return;
+            logContainer.innerHTML = '<li style="color: var(--text-muted);">No backlogs! You are perfectly on schedule.</li>'; return;
         }
         userData.backlogItems.forEach((item, index) => {
             const li = document.createElement('li'); li.style.justifyContent = 'space-between';
@@ -281,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.claim-bounty-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 userData.xp += parseInt(userData.backlogItems.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1)[0].xp);
-                localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); renderBacklogs(); updateUI();
+                localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); renderBacklogs(); updateUI();
             });
         });
     }
@@ -290,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const backlogInput = document.getElementById('backlogInput'); const backlogXP = document.getElementById('backlogXP');
         if (!backlogInput.value.trim()) return;
         userData.backlogItems.push({ topic: backlogInput.value.trim(), xp: backlogXP.value || 100 });
-        localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); backlogInput.value = ''; renderBacklogs();
+        localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); backlogInput.value = ''; renderBacklogs();
     });
     renderBacklogs();
 
@@ -308,13 +426,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.pyq-add').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const sub = e.currentTarget.getAttribute('data-subject');
-            if (userData.pyqCounts[sub] < 300) { userData.pyqCounts[sub] += 5; localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); updatePYQ(); }
+            if (userData.pyqCounts[sub] < 300) { userData.pyqCounts[sub] += 5; localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); updatePYQ(); }
         });
     });
     document.querySelectorAll('.pyq-sub').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const sub = e.currentTarget.getAttribute('data-subject');
-            if (userData.pyqCounts[sub] > 0) { userData.pyqCounts[sub] = Math.max(0, userData.pyqCounts[sub] - 5); localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); updatePYQ(); }
+            if (userData.pyqCounts[sub] > 0) { userData.pyqCounts[sub] = Math.max(0, userData.pyqCounts[sub] - 5); localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); updatePYQ(); }
         });
     });
     updatePYQ();
@@ -335,7 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if(slider) {
                 slider.value = userData.subjectMastery[i];
                 slider.addEventListener('input', (e) => {
-                    userData.subjectMastery[i] = parseInt(e.target.value); localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); window.radarChartInstance.update();
+                    userData.subjectMastery[i] = parseInt(e.target.value); localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); window.radarChartInstance.update();
                 });
             }
         }
@@ -355,19 +473,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if(input) {
                 input.value = userData.weeklyHours[i];
                 input.addEventListener('input', (e) => {
-                    userData.weeklyHours[i] = parseFloat(e.target.value) || 0; localStorage.setItem('jeeNexusData_v8', JSON.stringify(userData)); barChart.update();
+                    userData.weeklyHours[i] = parseFloat(e.target.value) || 0; localStorage.setItem('jeeNexusData_v9', JSON.stringify(userData)); barChart.update();
                 });
             }
         }
     }
 
     // --- NAVIGATION TOGGLE & INITIALIZATION ---
-    applyConfig(); // Re-labels everything on boot
+    applyConfig(); 
+    renderDirectives(); // Dynamic item initialization on boot
+    updateUI();
 
     const navItems = document.querySelectorAll('.nav-links li');
     const allCards = document.querySelectorAll('.content-grid .card');
     
-    // Default boot view: Hide Tracker and Settings, show Dashboard items
     allCards.forEach(card => { 
         if (card.classList.contains('tracker-card') || card.classList.contains('settings-card')) {
             card.style.display = 'none'; 
@@ -381,10 +500,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             allCards.forEach(card => {
                 if (target === 'all') {
-                    // Dashboard view hides Tracker and Settings
                     card.style.display = (card.classList.contains('tracker-card') || card.classList.contains('settings-card')) ? 'none' : 'block';
                 } else {
-                    // Specific tab view
                     card.style.display = card.classList.contains(target) ? 'block' : 'none';
                 }
             });
