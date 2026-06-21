@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const todayString = new Date().toDateString(); 
     
-    // --- V11/V12 AUDIO ENGINE ---
     const sfxCheck = new Audio('https://actions.google.com/sounds/v1/cartoon/pop.ogg');
     const sfxAlarm = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
     sfxCheck.volume = 0.5; sfxAlarm.volume = 0.7;
@@ -14,14 +13,18 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectMastery: [0, 0, 0, 0, 0], weeklyHours: [0, 0, 0, 0, 0, 0, 0], 
         lastLoginDate: todayString, weeklyXP: 0, monthlyXP: 0, history: [],
         
-        // V12 EXPANDED CONFIGURATION
+        // V13 FULL CONFIGURATION ENGINE
         config: {
             exam: 'JEE', metric: 'AIR',
             sub1: 'Physics', sub2: 'Physical Chem', sub3: 'Organic Chem', sub4: 'Inorganic Chem', sub5: 'Algebra',
             goal1: 'Phase 1 Syllabus', goal2: 'Phase 2 Syllabus', goal3: 'Mock Test Accuracy',
             block1: 'Morning Block', block2: 'Afternoon Block', block3: 'Evening Block',
             maxChap: 40, maxQ: 300,
-            primaryColor: '#00f2fe', secondaryColor: '#ff0844'
+            primaryColor: '#00f2fe', secondaryColor: '#ff0844',
+            t1Name: 'Standard Block', t1Min: 120,
+            t2Name: 'Focus Block', t2Min: 90,
+            t3Name: 'Short Block', t3Min: 60,
+            t4Name: 'Pomodoro', t4Min: 50
         },
         directives: {
             morning: [{ id: 1, text: "Wake Up & Hydrate", xp: 10, completed: false }],
@@ -30,16 +33,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    let userData = JSON.parse(localStorage.getItem('jeeNexusData_v12'));
+    let userData = JSON.parse(localStorage.getItem('jeeNexusData_v13'));
     
-    // V12 Migration
+    // V13 Migration
     if (!userData) {
-        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v11')) || JSON.parse(localStorage.getItem('jeeNexusData_v10'));
+        let oldData = JSON.parse(localStorage.getItem('jeeNexusData_v12')) || JSON.parse(localStorage.getItem('jeeNexusData_v11'));
         if (oldData) {
             userData = oldData;
-            // Merge old config with new V12 variables safely
             userData.config = { ...defaultState.config, ...(userData.config || {}) };
-            localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
+            localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
         } else {
             userData = defaultState;
         }
@@ -60,14 +62,136 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
         calculateDisciplineScore();
-        localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
+        localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
     }
 
-    // --- MOBILE HAMBURGER MENU ---
-    const openMenuBtn = document.getElementById('openMenuBtn');
-    const closeMenuBtn = document.getElementById('closeMenuBtn');
-    const mobileSidebar = document.getElementById('mobileSidebar');
+    // --- TIMERS PRE-SETUP ---
+    const blockSelector = document.getElementById('blockSelector'); 
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startTimer'); 
+    const resetBtn = document.getElementById('resetTimer');
+    const logContainer = document.getElementById('sessionLog');
+    
+    let selectedMinutes = 120;
+    let timeLeft = selectedMinutes * 60; 
+    let timerInterval; 
+    let isRunning = false;
 
+    function updateTimerDisplay() { if(timerDisplay) timerDisplay.innerText = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`; }
+
+    // --- UNIVERSAL SETTINGS ENGINE (V13) ---
+    function applyConfig() {
+        const c = userData.config;
+        
+        document.documentElement.style.setProperty('--primary-neon', c.primaryColor || '#00f2fe');
+        document.documentElement.style.setProperty('--secondary-neon', c.secondaryColor || '#ff0844');
+
+        if(document.getElementById('displayExamTitle')) document.getElementById('displayExamTitle').innerText = c.exam;
+        if(document.getElementById('displayMetricPrefix')) document.getElementById('displayMetricPrefix').innerText = c.metric;
+        if(document.getElementById('displayGoal1')) document.getElementById('displayGoal1').innerText = c.goal1;
+        if(document.getElementById('displayGoal2')) document.getElementById('displayGoal2').innerText = c.goal2;
+        if(document.getElementById('displayGoal3')) document.getElementById('displayGoal3').innerText = c.goal3;
+        
+        if(document.getElementById('displayBlock1')) document.getElementById('displayBlock1').innerText = c.block1;
+        if(document.getElementById('displayBlock2')) document.getElementById('displayBlock2').innerText = c.block2;
+        if(document.getElementById('displayBlock3')) document.getElementById('displayBlock3').innerText = c.block3;
+
+        for(let i=0; i<5; i++) {
+            if(document.getElementById(`mastLabel${i}`)) document.getElementById(`mastLabel${i}`).innerText = c[`sub${i+1}`];
+            if(document.getElementById(`pyqTitle${i}`)) document.getElementById(`pyqTitle${i}`).innerText = c[`sub${i+1}`] + " Actions";
+        }
+
+        if(window.radarChartInstance) { 
+            window.radarChartInstance.data.labels = [c.sub1, c.sub2, c.sub3, c.sub4, c.sub5]; 
+            window.radarChartInstance.data.datasets[0].borderColor = c.primaryColor || '#00f2fe';
+            window.radarChartInstance.data.datasets[0].pointBackgroundColor = c.primaryColor || '#00f2fe';
+            window.radarChartInstance.update(); 
+        }
+
+        // Apply Custom Timers to Dropdown
+        if (blockSelector) {
+            blockSelector.innerHTML = `
+                <option value="${c.t1Min}" selected>${c.t1Name} (${c.t1Min} min)</option>
+                <option value="${c.t2Min}">${c.t2Name} (${c.t2Min} min)</option>
+                <option value="${c.t3Min}">${c.t3Name} (${c.t3Min} min)</option>
+                <option value="${c.t4Min}">${c.t4Name} (${c.t4Min} min)</option>
+            `;
+            if (!isRunning) {
+                selectedMinutes = parseInt(blockSelector.value) || 120;
+                timeLeft = selectedMinutes * 60;
+                updateTimerDisplay();
+            }
+        }
+
+        // Fill Settings Form
+        ['Exam', 'Metric', 'Goal1', 'Goal2', 'Goal3', 'Sub1', 'Sub2', 'Sub3', 'Sub4', 'Sub5', 'Block1', 'Block2', 'Block3', 'T1Name', 'T2Name', 'T3Name', 'T4Name'].forEach(key => {
+            if(document.getElementById(`conf${key}`)) document.getElementById(`conf${key}`).value = c[key.toLowerCase()] || c[key.charAt(0).toLowerCase() + key.slice(1)];
+        });
+        
+        ['MaxChap', 'MaxQ', 'T1Min', 'T2Min', 'T3Min', 'T4Min'].forEach(key => {
+            if(document.getElementById(`conf${key}`)) document.getElementById(`conf${key}`).value = c[key.charAt(0).toLowerCase() + key.slice(1)];
+        });
+
+        if(document.getElementById('confPrimaryColor')) document.getElementById('confPrimaryColor').value = c.primaryColor || '#00f2fe';
+        if(document.getElementById('confSecondaryColor')) document.getElementById('confSecondaryColor').value = c.secondaryColor || '#ff0844';
+    }
+
+    if(document.getElementById('saveConfigBtn')) {
+        document.getElementById('saveConfigBtn').addEventListener('click', () => {
+            userData.config = {
+                exam: document.getElementById('confExam').value || 'Target Exam', metric: document.getElementById('confMetric').value || 'Score',
+                goal1: document.getElementById('confGoal1').value || 'Phase 1', goal2: document.getElementById('confGoal2').value || 'Phase 2', goal3: document.getElementById('confGoal3').value || 'Phase 3',
+                sub1: document.getElementById('confSub1').value || 'Subject 1', sub2: document.getElementById('confSub2').value || 'Subject 2',
+                sub3: document.getElementById('confSub3').value || 'Subject 3', sub4: document.getElementById('confSub4').value || 'Subject 4', sub5: document.getElementById('confSub5').value || 'Subject 5',
+                block1: document.getElementById('confBlock1').value || 'Morning Block', block2: document.getElementById('confBlock2').value || 'Afternoon Block', block3: document.getElementById('confBlock3').value || 'Evening Block',
+                maxChap: parseInt(document.getElementById('confMaxChap').value) || 40, maxQ: parseInt(document.getElementById('confMaxQ').value) || 300,
+                primaryColor: document.getElementById('confPrimaryColor').value || '#00f2fe', secondaryColor: document.getElementById('confSecondaryColor').value || '#ff0844',
+                t1Name: document.getElementById('confT1Name').value || 'Standard Block', t1Min: parseInt(document.getElementById('confT1Min').value) || 120,
+                t2Name: document.getElementById('confT2Name').value || 'Focus Block', t2Min: parseInt(document.getElementById('confT2Min').value) || 90,
+                t3Name: document.getElementById('confT3Name').value || 'Short Block', t3Min: parseInt(document.getElementById('confT3Min').value) || 60,
+                t4Name: document.getElementById('confT4Name').value || 'Pomodoro', t4Min: parseInt(document.getElementById('confT4Min').value) || 50
+            };
+            localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); applyConfig(); updateClass11Progress(); updatePYQ(); alert("Settings applied globally!");
+        });
+    }
+
+    // Run apply config immediately so the DOM updates before any actions happen
+    applyConfig();
+
+    // --- TIMERS INTERACTION ---
+    function renderFocusLog() {
+        if(!logContainer) return; logContainer.innerHTML = '';
+        if (!userData.focusLog || userData.focusLog.length === 0) logContainer.innerHTML = '<li style="color: var(--text-muted);">No sessions logged today.</li>';
+        else userData.focusLog.forEach(log => { const li = document.createElement('li'); li.innerHTML = `<span><i class="fa-solid fa-check"></i> ${log.duration} min Block</span> <span>${log.time}</span>`; logContainer.appendChild(li); });
+    }
+
+    if(blockSelector) blockSelector.addEventListener('change', (e) => { if (!isRunning) { selectedMinutes = parseInt(e.target.value); timeLeft = selectedMinutes * 60; updateTimerDisplay(); } });
+
+    if(startBtn) startBtn.addEventListener('click', () => {
+        if (!isRunning) {
+            isRunning = true; if(blockSelector) blockSelector.disabled = true; 
+            startBtn.innerText = "Pause"; startBtn.classList.replace('primary-btn', 'secondary-btn');
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); } 
+                else {
+                    clearInterval(timerInterval); isRunning = false; if(blockSelector) blockSelector.disabled = false;
+                    const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    if(!userData.focusLog) userData.focusLog = []; userData.focusLog.push({ duration: selectedMinutes, time: timeString });
+                    localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
+                    renderFocusLog(); sfxAlarm.play().catch(e=>console.log("Audio prevented")); alert(`Block complete!`);
+                    timeLeft = selectedMinutes * 60; startBtn.innerText = "Start Focus"; startBtn.classList.replace('secondary-btn', 'primary-btn'); updateTimerDisplay();
+                }
+            }, 1000);
+        } else { clearInterval(timerInterval); isRunning = false; if(blockSelector) blockSelector.disabled = false; startBtn.innerText = "Resume"; startBtn.classList.replace('secondary-btn', 'primary-btn'); }
+    });
+
+    if(resetBtn) resetBtn.addEventListener('click', () => { clearInterval(timerInterval); isRunning = false; if(blockSelector) blockSelector.disabled = false; timeLeft = selectedMinutes * 60; updateTimerDisplay(); if(startBtn) { startBtn.innerText = "Start Focus"; startBtn.classList.replace('secondary-btn', 'primary-btn'); } });
+    
+    renderFocusLog();
+
+
+    // --- MOBILE HAMBURGER MENU ---
+    const openMenuBtn = document.getElementById('openMenuBtn'); const closeMenuBtn = document.getElementById('closeMenuBtn'); const mobileSidebar = document.getElementById('mobileSidebar');
     if(openMenuBtn && closeMenuBtn && mobileSidebar) {
         openMenuBtn.addEventListener('click', () => { mobileSidebar.classList.add('active'); closeMenuBtn.style.display = 'block'; });
         closeMenuBtn.addEventListener('click', () => { mobileSidebar.classList.remove('active'); closeMenuBtn.style.display = 'none'; });
@@ -105,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if(rTask) newArray.push(rTask);
                     });
                     userData.directives[block] = newArray;
-                    localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
+                    localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
                 });
                 container.appendChild(row);
             });
@@ -165,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ['morning', 'afternoon', 'evening'].forEach(block => { total += userData.directives[block].length; completed += userData.directives[block].filter(t => t.completed).length; });
         userData.discipline = total > 0 ? Math.round((completed / total) * 100) : 0;
         if (document.getElementById('disciplineScore')) document.getElementById('disciplineScore').innerText = `${userData.discipline}%`;
-        localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
+        localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
     }
 
     document.querySelectorAll('.task-add-btn').forEach(btn => {
@@ -174,66 +298,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const textInput = document.getElementById(`input-text-${block}`); const xpInput = document.getElementById(`input-xp-${block}`);
             if (!textInput || !textInput.value.trim()) return;
             userData.directives[block].push({ id: Date.now() + Math.floor(Math.random() * 1000), text: textInput.value.trim(), xp: parseInt(xpInput.value) || 20, completed: false });
-            textInput.value = ''; renderDirectives(); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); updateUI();
+            textInput.value = ''; renderDirectives(); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); updateUI();
         });
     });
-
-    // --- V12 UNIVERSAL SETTINGS & THEME ENGINE ---
-    function applyConfig() {
-        const c = userData.config;
-        
-        // 1. Inject UI Colors Dynamic Variables
-        document.documentElement.style.setProperty('--primary-neon', c.primaryColor || '#00f2fe');
-        document.documentElement.style.setProperty('--secondary-neon', c.secondaryColor || '#ff0844');
-
-        // 2. Inject Text Global
-        if(document.getElementById('displayExamTitle')) document.getElementById('displayExamTitle').innerText = c.exam;
-        if(document.getElementById('displayMetricPrefix')) document.getElementById('displayMetricPrefix').innerText = c.metric;
-        if(document.getElementById('displayGoal1')) document.getElementById('displayGoal1').innerText = c.goal1;
-        if(document.getElementById('displayGoal2')) document.getElementById('displayGoal2').innerText = c.goal2;
-        if(document.getElementById('displayGoal3')) document.getElementById('displayGoal3').innerText = c.goal3;
-        
-        if(document.getElementById('displayBlock1')) document.getElementById('displayBlock1').innerText = c.block1;
-        if(document.getElementById('displayBlock2')) document.getElementById('displayBlock2').innerText = c.block2;
-        if(document.getElementById('displayBlock3')) document.getElementById('displayBlock3').innerText = c.block3;
-
-        for(let i=0; i<5; i++) {
-            if(document.getElementById(`mastLabel${i}`)) document.getElementById(`mastLabel${i}`).innerText = c[`sub${i+1}`];
-            if(document.getElementById(`pyqTitle${i}`)) document.getElementById(`pyqTitle${i}`).innerText = c[`sub${i+1}`] + " Actions";
-        }
-
-        if(window.radarChartInstance) { 
-            window.radarChartInstance.data.labels = [c.sub1, c.sub2, c.sub3, c.sub4, c.sub5]; 
-            // Update radar chart color to match theme
-            window.radarChartInstance.data.datasets[0].borderColor = c.primaryColor;
-            window.radarChartInstance.data.datasets[0].pointBackgroundColor = c.primaryColor;
-            window.radarChartInstance.update(); 
-        }
-
-        // Fill Settings Form
-        ['Exam', 'Metric', 'Goal1', 'Goal2', 'Goal3', 'Sub1', 'Sub2', 'Sub3', 'Sub4', 'Sub5', 'Block1', 'Block2', 'Block3'].forEach(key => {
-            if(document.getElementById(`conf${key}`)) document.getElementById(`conf${key}`).value = c[key.toLowerCase()];
-        });
-        if(document.getElementById('confMaxChap')) document.getElementById('confMaxChap').value = c.maxChap;
-        if(document.getElementById('confMaxQ')) document.getElementById('confMaxQ').value = c.maxQ;
-        if(document.getElementById('confPrimaryColor')) document.getElementById('confPrimaryColor').value = c.primaryColor || '#00f2fe';
-        if(document.getElementById('confSecondaryColor')) document.getElementById('confSecondaryColor').value = c.secondaryColor || '#ff0844';
-    }
-
-    if(document.getElementById('saveConfigBtn')) {
-        document.getElementById('saveConfigBtn').addEventListener('click', () => {
-            userData.config = {
-                exam: document.getElementById('confExam').value || 'Target Exam', metric: document.getElementById('confMetric').value || 'Score',
-                goal1: document.getElementById('confGoal1').value || 'Phase 1', goal2: document.getElementById('confGoal2').value || 'Phase 2', goal3: document.getElementById('confGoal3').value || 'Phase 3',
-                sub1: document.getElementById('confSub1').value || 'Subject 1', sub2: document.getElementById('confSub2').value || 'Subject 2',
-                sub3: document.getElementById('confSub3').value || 'Subject 3', sub4: document.getElementById('confSub4').value || 'Subject 4', sub5: document.getElementById('confSub5').value || 'Subject 5',
-                block1: document.getElementById('confBlock1').value || 'Morning Block', block2: document.getElementById('confBlock2').value || 'Afternoon Block', block3: document.getElementById('confBlock3').value || 'Evening Block',
-                maxChap: parseInt(document.getElementById('confMaxChap').value) || 40, maxQ: parseInt(document.getElementById('confMaxQ').value) || 300,
-                primaryColor: document.getElementById('confPrimaryColor').value || '#00f2fe', secondaryColor: document.getElementById('confSecondaryColor').value || '#ff0844'
-            };
-            localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); applyConfig(); updateClass11Progress(); updatePYQ(); alert("Settings applied globally!");
-        });
-    }
 
     // --- DATA EXPORT / IMPORT ---
     if(document.getElementById('exportDataBtn')) {
@@ -249,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.onload = (event) => {
                 try {
                     const importedData = JSON.parse(event.target.result);
-                    if(importedData.config && importedData.directives) { localStorage.setItem('jeeNexusData_v12', JSON.stringify(importedData)); alert("Profile Restore Successful!"); location.reload(); } else { alert("Invalid Backup File."); }
+                    if(importedData.config && importedData.directives) { localStorage.setItem('jeeNexusData_v13', JSON.stringify(importedData)); alert("Profile Restore Successful!"); location.reload(); } else { alert("Invalid Backup File."); }
                 } catch(err) { alert("Error reading file."); }
             }; reader.readAsText(file);
         });
@@ -288,10 +355,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (estimatedRank < 1) estimatedRank = 1;
         if(document.getElementById('predictedRankDisplay')) document.getElementById('predictedRankDisplay').innerText = Math.floor(estimatedRank).toLocaleString();
         
-        updateBadges(); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
+        updateBadges(); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
     }
 
-    // --- V12 DYNAMIC TARGET PROGRESS ---
+    // --- DYNAMIC TARGET PROGRESS ---
     function updateClass11Progress() {
         const chapCount11 = document.getElementById('chapCount11'); const progBar11 = document.getElementById('progBar11');
         if (!chapCount11 || !progBar11) return;
@@ -300,50 +367,11 @@ document.addEventListener("DOMContentLoaded", () => {
         chapCount11.innerText = `${userData.class11Completed} / ${target} Units`; progBar11.style.width = `${percentage}%`; progBar11.innerText = `${percentage}%`;
     }
 
-    if(document.getElementById('addChap11')) document.getElementById('addChap11').addEventListener('click', () => { let target = userData.config.maxChap || 40; if (userData.class11Completed < target) { userData.class11Completed++; updateClass11Progress(); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); } });
-    if(document.getElementById('subChap11')) document.getElementById('subChap11').addEventListener('click', () => { if (userData.class11Completed > 0) { userData.class11Completed--; updateClass11Progress(); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));} });
+    if(document.getElementById('addChap11')) document.getElementById('addChap11').addEventListener('click', () => { let target = userData.config.maxChap || 40; if (userData.class11Completed < target) { userData.class11Completed++; updateClass11Progress(); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); } });
+    if(document.getElementById('subChap11')) document.getElementById('subChap11').addEventListener('click', () => { if (userData.class11Completed > 0) { userData.class11Completed--; updateClass11Progress(); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));} });
     updateClass11Progress();
 
-    // --- POMODORO TIMER ---
-    const blockSelector = document.getElementById('blockSelector'); const timerDisplay = document.getElementById('timer');
-    const startBtn = document.getElementById('startTimer'); const resetBtn = document.getElementById('resetTimer');
-    const logContainer = document.getElementById('sessionLog');
-    
-    let selectedMinutes = blockSelector ? parseInt(blockSelector.value) : 120;
-    let timeLeft = selectedMinutes * 60; let timerInterval; let isRunning = false;
-
-    function updateTimerDisplay() { if(timerDisplay) timerDisplay.innerText = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`; }
-
-    function renderFocusLog() {
-        if(!logContainer) return; logContainer.innerHTML = '';
-        if (!userData.focusLog || userData.focusLog.length === 0) logContainer.innerHTML = '<li style="color: var(--text-muted);">No sessions logged today.</li>';
-        else userData.focusLog.forEach(log => { const li = document.createElement('li'); li.innerHTML = `<span><i class="fa-solid fa-check"></i> ${log.duration} min Block</span> <span>${log.time}</span>`; logContainer.appendChild(li); });
-    }
-
-    if(blockSelector) blockSelector.addEventListener('change', (e) => { if (!isRunning) { selectedMinutes = parseInt(e.target.value); timeLeft = selectedMinutes * 60; updateTimerDisplay(); } });
-
-    if(startBtn) startBtn.addEventListener('click', () => {
-        if (!isRunning) {
-            isRunning = true; if(blockSelector) blockSelector.disabled = true; 
-            startBtn.innerText = "Pause"; startBtn.classList.replace('primary-btn', 'secondary-btn');
-            timerInterval = setInterval(() => {
-                if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); } 
-                else {
-                    clearInterval(timerInterval); isRunning = false; if(blockSelector) blockSelector.disabled = false;
-                    const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    if(!userData.focusLog) userData.focusLog = []; userData.focusLog.push({ duration: selectedMinutes, time: timeString });
-                    localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
-                    renderFocusLog(); sfxAlarm.play().catch(e=>console.log("Audio prevented")); alert(`Block complete!`);
-                    timeLeft = selectedMinutes * 60; startBtn.innerText = "Start Focus"; startBtn.classList.replace('secondary-btn', 'primary-btn'); updateTimerDisplay();
-                }
-            }, 1000);
-        } else { clearInterval(timerInterval); isRunning = false; if(blockSelector) blockSelector.disabled = false; startBtn.innerText = "Resume"; startBtn.classList.replace('secondary-btn', 'primary-btn'); }
-    });
-
-    if(resetBtn) resetBtn.addEventListener('click', () => { clearInterval(timerInterval); isRunning = false; if(blockSelector) blockSelector.disabled = false; timeLeft = selectedMinutes * 60; updateTimerDisplay(); if(startBtn) { startBtn.innerText = "Start Focus"; startBtn.classList.replace('secondary-btn', 'primary-btn'); } });
-    updateTimerDisplay(); renderFocusLog();
-
-    // --- TRACKER: ERROR LOG ---
+    // --- ERROR LOG ---
     const errorLogTableBody = document.getElementById('errorLogTableBody');
     function renderErrorLog() {
         if(!errorLogTableBody) return; errorLogTableBody.innerHTML = '';
@@ -354,19 +382,19 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.innerHTML = `<td style="padding: 0.8rem; font-weight: bold;">${err.chapter}</td><td style="padding: 0.8rem;"><span style="color: ${badgeColor}; font-size: 0.8rem; border: 1px solid ${badgeColor}; padding: 2px 6px; border-radius: 4px;">${err.type}</span></td><td style="padding: 0.8rem; color: #e0e0e0;">${err.note}</td><td style="padding: 0.8rem; text-align: center;"><button class="delete-err-btn" data-index="${index}" style="background: transparent; border: none; color: #ff4a5a; cursor: pointer;"><i class="fa-solid fa-trash-can"></i></button></td>`;
             errorLogTableBody.appendChild(tr);
         });
-        document.querySelectorAll('.delete-err-btn').forEach(btn => { btn.addEventListener('click', (e) => { userData.errorLogs.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); renderErrorLog(); }); });
+        document.querySelectorAll('.delete-err-btn').forEach(btn => { btn.addEventListener('click', (e) => { userData.errorLogs.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); renderErrorLog(); }); });
     }
 
     if(document.getElementById('addErrorBtn')) document.getElementById('addErrorBtn').addEventListener('click', () => {
         const errChap = document.getElementById('errChap'); const errNote = document.getElementById('errNote'); const errType = document.getElementById('errType');
         if (!errChap.value.trim() || !errNote.value.trim()) return alert('Fill out Topic and Correction note!');
         userData.errorLogs.push({ chapter: errChap.value.trim(), type: errType.value, note: errNote.value.trim() });
-        addGlobalXP(50); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData));
+        addGlobalXP(50); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData));
         errChap.value = ''; errNote.value = ''; renderErrorLog(); updateUI();
     });
     renderErrorLog();
 
-    // --- TRACKER: BACKLOG BOUNTY ---
+    // --- BACKLOG BOUNTY ---
     const backlogList = document.getElementById('backlogList');
     function renderBacklogs() {
         if(!backlogList) return; backlogList.innerHTML = '';
@@ -380,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener('click', (e) => {
                 sfxCheck.play().catch(e=>console.log("Audio prevented"));
                 addGlobalXP(parseInt(userData.backlogItems.splice(parseInt(e.currentTarget.getAttribute('data-index')), 1)[0].xp));
-                localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); renderBacklogs(); updateUI();
+                localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); renderBacklogs(); updateUI();
             });
         });
     }
@@ -389,11 +417,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const backlogInput = document.getElementById('backlogInput'); const backlogXP = document.getElementById('backlogXP');
         if (!backlogInput.value.trim()) return;
         userData.backlogItems.push({ topic: backlogInput.value.trim(), xp: backlogXP.value || 100 });
-        localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); backlogInput.value = ''; renderBacklogs();
+        localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); backlogInput.value = ''; renderBacklogs();
     });
     renderBacklogs();
 
-    // --- V12 DYNAMIC ACTION GRINDER ---
+    // --- DYNAMIC ACTION GRINDER ---
     function updatePYQ() {
         ['physics', 'chemistry', 'maths'].forEach(sub => {
             const countSpan = document.getElementById(`pyqCount${sub}`); const bar = document.getElementById(`pyqBar${sub}`);
@@ -405,27 +433,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    document.querySelectorAll('.pyq-add').forEach(btn => { btn.addEventListener('click', (e) => { const sub = e.currentTarget.getAttribute('data-subject'); let target = userData.config.maxQ || 300; if (userData.pyqCounts[sub] < target) { userData.pyqCounts[sub] += 5; localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); updatePYQ(); } }); });
-    document.querySelectorAll('.pyq-sub').forEach(btn => { btn.addEventListener('click', (e) => { const sub = e.currentTarget.getAttribute('data-subject'); if (userData.pyqCounts[sub] > 0) { userData.pyqCounts[sub] = Math.max(0, userData.pyqCounts[sub] - 5); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); updatePYQ(); } }); });
+    document.querySelectorAll('.pyq-add').forEach(btn => { btn.addEventListener('click', (e) => { const sub = e.currentTarget.getAttribute('data-subject'); let target = userData.config.maxQ || 300; if (userData.pyqCounts[sub] < target) { userData.pyqCounts[sub] += 5; localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); updatePYQ(); } }); });
+    document.querySelectorAll('.pyq-sub').forEach(btn => { btn.addEventListener('click', (e) => { const sub = e.currentTarget.getAttribute('data-subject'); if (userData.pyqCounts[sub] > 0) { userData.pyqCounts[sub] = Math.max(0, userData.pyqCounts[sub] - 5); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); updatePYQ(); } }); });
     updatePYQ();
 
-    // --- INTERACTIVE CHART.JS INTEGRATION ---
+    // --- CHART.JS INTEGRATION ---
     Chart.defaults.color = '#888'; Chart.defaults.font.family = "'Inter', sans-serif";
     const ctxRadar = document.getElementById('subjectRadar');
     if (ctxRadar) {
         window.radarChartInstance = new Chart(ctxRadar.getContext('2d'), { type: 'radar', data: { labels: [userData.config.sub1, userData.config.sub2, userData.config.sub3, userData.config.sub4, userData.config.sub5], datasets: [{ label: 'Mastery', data: userData.subjectMastery, backgroundColor: 'rgba(0, 242, 254, 0.2)', borderColor: userData.config.primaryColor || '#00f2fe', pointBackgroundColor: userData.config.primaryColor || '#00f2fe', borderWidth: 2 }] }, options: { scales: { r: { ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } } });
-        for(let i=0; i<5; i++) { const slider = document.getElementById(`mastery${i}`); if(slider) { slider.value = userData.subjectMastery[i]; slider.addEventListener('input', (e) => { userData.subjectMastery[i] = parseInt(e.target.value); localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); window.radarChartInstance.update(); }); } }
+        for(let i=0; i<5; i++) { const slider = document.getElementById(`mastery${i}`); if(slider) { slider.value = userData.subjectMastery[i]; slider.addEventListener('input', (e) => { userData.subjectMastery[i] = parseInt(e.target.value); localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); window.radarChartInstance.update(); }); } }
     }
 
     const ctxBar = document.getElementById('weeklyBar');
     if (ctxBar) {
         let ctx = ctxBar.getContext('2d'); let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(0, 242, 254, 0.8)'); gradient.addColorStop(1, 'rgba(0, 242, 254, 0.1)');
         let barChart = new Chart(ctx, { type: 'bar', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ data: userData.weeklyHours, backgroundColor: gradient, borderRadius: 5 }] }, options: { scales: { y: { beginAtZero: true, max: 24 } }, plugins: { legend: { display: false } } } });
-        for(let i=0; i<7; i++) { const input = document.getElementById(`hrs${i}`); if(input) { input.value = userData.weeklyHours[i]; input.addEventListener('input', (e) => { userData.weeklyHours[i] = parseFloat(e.target.value) || 0; localStorage.setItem('jeeNexusData_v12', JSON.stringify(userData)); barChart.update(); }); } }
+        for(let i=0; i<7; i++) { const input = document.getElementById(`hrs${i}`); if(input) { input.value = userData.weeklyHours[i]; input.addEventListener('input', (e) => { userData.weeklyHours[i] = parseFloat(e.target.value) || 0; localStorage.setItem('jeeNexusData_v13', JSON.stringify(userData)); barChart.update(); }); } }
     }
 
     // --- INITIALIZATION & NAVIGATION ---
-    applyConfig(); renderDirectives(); updateUI();
+    renderDirectives(); updateUI();
 
     const navItems = document.querySelectorAll('.nav-links li');
     const allCards = document.querySelectorAll('.content-grid .card');

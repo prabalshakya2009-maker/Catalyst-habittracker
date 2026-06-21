@@ -45,7 +45,6 @@
         .badge-title { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
         .badge-unlocked .badge-title { color: #fff; }
         
-        /* NEW: Color Pickers in Settings */
         .color-picker { -webkit-appearance: none; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; overflow: hidden; padding: 0; background: none; }
         .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
@@ -112,13 +111,9 @@
             <div class="content-grid">
                 <section class="glass card focus-card dashboard-item">
                     <h3><i class="fa-solid fa-brain"></i> Deep Work Session</h3>
-                    <select id="blockSelector" class="glass-select">
-                        <option value="120" selected>Standard Block (2 Hours)</option>
-                        <option value="90">Focus Block (1 hr 30 min)</option>
-                        <option value="60">Short Block (1 Hour)</option>
-                        <option value="50">Pomodoro (50 min)</option>
-                    </select>
-                    <div class="timer-display" id="timer">120:00</div>
+                    <select id="blockSelector" class="glass-select"></select>
+                    
+                    <div class="timer-display" id="timer">00:00</div>
                     <div class="timer-controls">
                         <button id="startTimer" class="btn primary-btn">Start Focus</button>
                         <button id="resetTimer" class="btn secondary-btn">Reset</button>
@@ -321,7 +316,7 @@
 
                 <section class="glass card settings-card span-3" style="display: none;">
                     <h3><i class="fa-solid fa-gear" style="color: var(--primary-neon);"></i> System Configuration</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">The OS is yours. Customize colors, names, and targets to fit your life.</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">The OS is yours. Customize colors, timers, and targets to fit your life.</p>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
                         
@@ -342,6 +337,26 @@
                                     <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Secondary Color</label>
                                     <input type="color" id="confSecondaryColor" class="color-picker" value="#ff0844">
                                 </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Timer Presets</h4>
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="confT1Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 1 Name">
+                                <input type="number" id="confT1Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="confT2Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 2 Name">
+                                <input type="number" id="confT2Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="confT3Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 3 Name">
+                                <input type="number" id="confT3Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <input type="text" id="confT4Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 4 Name">
+                                <input type="number" id="confT4Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
                             </div>
                         </div>
 
