@@ -65,9 +65,9 @@
       </div>
     </aside>
 
-    <!-- Main Content Workspace -->
+    <!-- Main Workspace -->
     <main class="main-content">
-      <!-- Top Metrics Bar -->
+      <!-- Top Metrics Ribbon (Always at the top of content) -->
       <header class="top-stats-ribbon">
         <div class="stat-box">
           <span class="stat-label">Daily Streak</span>
@@ -77,7 +77,7 @@
         <div class="stat-box">
           <span class="stat-label">Study Time Today</span>
           <span class="stat-value" id="topFocusTime">0.0h</span>
-          <span class="stat-sub">Goal: 5.0h daily</span>
+          <span class="stat-sub">Daily Goal: 5.0h</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Exam Countdown</span>
@@ -85,13 +85,13 @@
           <span class="stat-sub" id="topPaceRequired">Required pace</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Target AIR</span>
+          <span class="stat-label">Target Rank</span>
           <span class="stat-value accent" id="topRankPrediction">Top 5,000</span>
           <span class="stat-sub">From mock history</span>
         </div>
       </header>
 
-      <!-- TAB 1: DASHBOARD & FOCUS TIMER -->
+      <!-- TAB 1: FOCUS / DASHBOARD -->
       <section id="view-dashboard" class="tab-pane active">
         <div class="two-column-grid">
           <!-- Focus Timer Card -->
@@ -111,7 +111,7 @@
               <span class="timer-tag" id="timerTag">Deep Focus Block</span>
             </div>
 
-            <!-- Built-in Ambient Focus Audio -->
+            <!-- Built-in Ambient Audio -->
             <div class="timer-audio-bar">
               <span class="audio-title">🎧 Audio:</span>
               <select id="audioSelect">
@@ -136,7 +136,7 @@
             </div>
           </div>
 
-          <!-- Tasks & Radar Card Stack -->
+          <!-- Tasks & Radar Stack -->
           <div class="right-column-stack">
             <!-- Today's Tasks -->
             <div class="card">
@@ -303,7 +303,7 @@
         </div>
       </section>
 
-      <!-- TAB 4: MOCK TESTS & ANALYTICS -->
+      <!-- TAB 4: MOCK TESTS -->
       <section id="view-mocks" class="tab-pane">
         <div class="two-column-grid">
           <div class="card">
@@ -363,423 +363,7 @@
         </div>
       </section>
 
-      <!-- TAB 5: SETTINGS & BACKUP -->
-      <section id="view-settings" class="tab-pane">
-        <div class="two-column-grid">
-          <div class="card">
-            <div class="card-header">
-              <h3>Exam Targets & Goals</h3>
-            </div>
-            <div class="vertical-form">
-              <div class="form-group">
-                <label>Target Exam Date:</label>
-                <input type="date" id="settingExamDate">
-              </div>
-              <div class="form-group">
-                <label>Total Question Goal (for entire prep):</label>
-                <input type="number" id="settingTotalGoal" value="3000">
-              </div>
-              <div class="form-group">
-                <label>Daily Questions Target (per subject):</label>
-                <input type="number" id="settingDailySubjectGoal" value="20">
-              </div>
-              <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
-            </div>
-          </div>
-
-          <div class="card socratic-card">
-            <div>
-              <div class="card-header">
-                <h3>Save Data & Export</h3>
-              </div>
-              <p class="card-sub">Your data is stored completely offline in your browser. Download a backup file regularly to ensure you never lose your records.</p>
-              
-              <div class="backup-buttons mt-4">
-                <button class="btn btn-secondary" id="btnExportJSON">Download JSON Backup</button>
-                <label class="btn btn-secondary upload-btn">
-                  Import Backup <input type="file" id="importFileInput" accept=".json" style="display: none;">
-                </label>
-              </div>
-            </div>
-
-            <button class="btn btn-primary mt-4" id="btnExportDailyCard">
-              📥 Generate & Download Daily Summary Card
-            </button>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <canvas id="dailyCardCanvas" width="1080" height="1080" style="display: none;"></canvas>
-  <script src="app.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Calibre — Precision Study Workspace</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <div class="workspace">
-    <!-- Top Bar for Mobile Screens -->
-    <header class="mobile-top-bar">
-      <div class="mobile-brand">
-        <span class="brand-dot"></span>
-        <span class="brand-title">CALIBRE</span>
-      </div>
-      <span class="badge" id="mobileTabIndicator">Focus</span>
-    </header>
-
-    <!-- Sidebar (Desktop) / Bottom Navigation (Mobile) -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"/>
-            <circle cx="12" cy="12" r="4"/>
-            <line x1="12" y1="2" x2="12" y2="6"/>
-            <line x1="12" y1="18" x2="12" y2="22"/>
-            <line x1="2" y1="12" x2="6" y2="12"/>
-            <line x1="18" y1="12" x2="22" y2="12"/>
-          </svg>
-        </div>
-        <span class="brand-title">CALIBRE</span>
-      </div>
-
-      <nav class="nav-menu">
-        <button class="nav-link active" data-tab="dashboard" data-label="Focus">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-          <span>Focus</span>
-        </button>
-        <button class="nav-link" data-tab="practice" data-label="Practice">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span>Practice</span>
-        </button>
-        <button class="nav-link" data-tab="mistakes" data-label="Mistakes">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span>Mistakes</span>
-        </button>
-        <button class="nav-link" data-tab="mocks" data-label="Mocks">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <span>Mocks</span>
-        </button>
-        <button class="nav-link" data-tab="settings" data-label="Settings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          <span>Settings</span>
-        </button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <span>Offline Data Saved</span>
-      </div>
-    </aside>
-
-    <!-- Main Content Workspace -->
-    <main class="main-content">
-      <!-- Top Metrics Bar -->
-      <header class="top-stats-ribbon">
-        <div class="stat-box">
-          <span class="stat-label">Daily Streak</span>
-          <span class="stat-value" id="topStreak">1 Day</span>
-          <span class="stat-sub">Active continuous</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Study Time Today</span>
-          <span class="stat-value" id="topFocusTime">0.0h</span>
-          <span class="stat-sub">Goal: 5.0h daily</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Exam Countdown</span>
-          <span class="stat-value" id="topCountdown">-- Days</span>
-          <span class="stat-sub" id="topPaceRequired">Required pace</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Target AIR</span>
-          <span class="stat-value accent" id="topRankPrediction">Top 5,000</span>
-          <span class="stat-sub">From mock history</span>
-        </div>
-      </header>
-
-      <!-- TAB 1: DASHBOARD & FOCUS TIMER -->
-      <section id="view-dashboard" class="tab-pane active">
-        <div class="two-column-grid">
-          <!-- Focus Timer Card -->
-          <div class="card timer-card">
-            <div class="card-header">
-              <h3>Focus Session</h3>
-              <div class="timer-presets">
-                <button class="preset-btn" data-time="25">25m</button>
-                <button class="preset-btn active" data-time="50">50m</button>
-                <button class="preset-btn" data-time="90">90m</button>
-                <button class="preset-btn" data-time="180">180m</button>
-              </div>
-            </div>
-
-            <div class="timer-display-wrap">
-              <div class="timer-display" id="timerClock">50:00</div>
-              <span class="timer-tag" id="timerTag">Deep Focus Block</span>
-            </div>
-
-            <!-- Built-in Ambient Focus Audio -->
-            <div class="timer-audio-bar">
-              <span class="audio-title">🎧 Audio:</span>
-              <select id="audioSelect">
-                <option value="none">Off (Silence)</option>
-                <option value="gamma">40 Hz Gamma Focus</option>
-                <option value="alpha">10 Hz Alpha Memory</option>
-                <option value="brown">Brownian Noise</option>
-              </select>
-              <button class="btn btn-secondary btn-small" id="btnAudioToggle">Play</button>
-            </div>
-
-            <div class="timer-actions">
-              <button class="btn btn-primary btn-large" id="btnTimerStart">Start Session</button>
-              <button class="btn btn-secondary btn-large" id="btnTimerReset">Reset</button>
-            </div>
-
-            <div class="completed-blocks-section">
-              <span class="section-title">Today's Completed Blocks</span>
-              <div class="chip-list" id="completedBlocksList">
-                <span class="empty-hint">No sessions completed yet today.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tasks & Radar Card Stack -->
-          <div class="right-column-stack">
-            <!-- Today's Tasks -->
-            <div class="card">
-              <div class="card-header">
-                <div>
-                  <h3>Today's Plan</h3>
-                  <p class="card-sub">Focus on 2-3 key goals each day</p>
-                </div>
-                <span class="badge" id="taskDoneCounter">0/0 Done</span>
-              </div>
-
-              <form id="todoForm" class="todo-form">
-                <input type="text" id="todoInput" placeholder="Add target (e.g. 15 Thermodynamics Qs)..." required>
-                <select id="todoSlot">
-                  <option value="Morning">Morning</option>
-                  <option value="Afternoon">Afternoon</option>
-                  <option value="Evening">Evening</option>
-                </select>
-                <button type="submit" class="btn btn-primary">+</button>
-              </form>
-
-              <div class="task-slots-container">
-                <div class="slot-box" id="slotMorning">
-                  <span class="slot-name">Morning</span>
-                  <div class="slot-list" id="tasksListMorning"></div>
-                </div>
-                <div class="slot-box" id="slotAfternoon">
-                  <span class="slot-name">Afternoon</span>
-                  <div class="slot-list" id="tasksListAfternoon"></div>
-                </div>
-                <div class="slot-box" id="slotEvening">
-                  <span class="slot-name">Evening</span>
-                  <div class="slot-list" id="tasksListEvening"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Subject Accuracy Balance Radar -->
-            <div class="card">
-              <div class="card-header">
-                <h3>Subject Accuracy Balance</h3>
-                <span class="badge">Live Accuracy</span>
-              </div>
-              <div class="chart-container-radar">
-                <canvas id="subjectRadarChart"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 2: QUESTION PRACTICE & PACE -->
-      <section id="view-practice" class="tab-pane">
-        <div class="two-column-grid">
-          <!-- Question Counters -->
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <h3>Daily Practice Counters</h3>
-                <p class="card-sub">Log solved questions to track target progress</p>
-              </div>
-            </div>
-            <div class="counter-stack" id="subjectCountersContainer"></div>
-          </div>
-
-          <!-- Pace Stopwatch -->
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <h3>Question Pace Stopwatch</h3>
-                <p class="card-sub">Time your speed per problem</p>
-              </div>
-              <span class="badge" id="avgPaceText">Avg: -- min/Q</span>
-            </div>
-
-            <div class="stopwatch-box">
-              <div class="stopwatch-display" id="paceTimerDisplay">00:00</div>
-              <div class="stopwatch-controls">
-                <select id="paceSubject">
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Mathematics">Mathematics</option>
-                </select>
-                <button class="btn btn-primary" id="btnPaceToggle">Start Question</button>
-                <button class="btn btn-success" id="btnPaceCorrect">✓ Solved Correct</button>
-                <button class="btn btn-danger" id="btnPaceMistake">✗ Got Wrong</button>
-              </div>
-            </div>
-
-            <div class="pace-laps-section">
-              <span class="section-title">Recent Solved Questions</span>
-              <div class="laps-list" id="paceLapsList">
-                <span class="empty-hint">No questions timed today.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 3: MISTAKE NOTEBOOK -->
-      <section id="view-mistakes" class="tab-pane">
-        <div class="two-column-grid">
-          <div class="card">
-            <div class="card-header">
-              <h3>Log a Mistake</h3>
-              <span class="badge badge-warn" id="dueReviewCount">0 Due for Review</span>
-            </div>
-            <form id="mistakeForm" class="vertical-form">
-              <div class="form-row">
-                <input type="text" id="errChapter" placeholder="Chapter / Topic (e.g. Rotational Motion)" required>
-                <select id="errSubject">
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Mathematics">Mathematics</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <select id="errCategory">
-                  <option value="Concept Misunderstanding">Concept Misunderstanding</option>
-                  <option value="Calculation Mistake">Calculation Mistake</option>
-                  <option value="Misread Constraint">Misread Constraint</option>
-                  <option value="Time Trap">Time Trap</option>
-                </select>
-                <input type="text" id="errTakeaway" placeholder="What went wrong & key formula takeaway" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Save to Notebook</button>
-            </form>
-          </div>
-
-          <div class="card socratic-card">
-            <div>
-              <div class="card-header">
-                <h3>Socratic AI Tutor Helper</h3>
-              </div>
-              <p class="card-sub">Every logged mistake has a one-click <strong>"Copy AI Prompt"</strong> button. Paste it into ChatGPT or Gemini to get a step-by-step diagnostic breakdown of where your logic failed.</p>
-            </div>
-            <div class="callout-box">
-              <strong>Spaced Repetition Active</strong>
-              <p>Mistakes are resurfaced automatically on Day 3, Day 7, and Day 21.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="card mt-4">
-          <div class="card-header">
-            <h3>Mistake Notebook</h3>
-            <span class="card-sub">Review regularly to prevent recurring errors</span>
-          </div>
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Topic</th>
-                  <th>Subject</th>
-                  <th>Mistake Type</th>
-                  <th>Key Takeaway</th>
-                  <th>Review Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="mistakeTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 4: MOCK TESTS & ANALYTICS -->
-      <section id="view-mocks" class="tab-pane">
-        <div class="two-column-grid">
-          <div class="card">
-            <div class="card-header">
-              <h3>Log Mock Test Score</h3>
-            </div>
-            <form id="mockForm" class="vertical-form">
-              <div class="form-row">
-                <input type="text" id="mockName" placeholder="Test Name (e.g. Major Test 02)" required>
-                <input type="date" id="mockDate" required>
-              </div>
-              <div class="form-row">
-                <input type="number" id="mockPhy" placeholder="Physics Marks" required>
-                <input type="number" id="mockChem" placeholder="Chemistry Marks" required>
-                <input type="number" id="mockMath" placeholder="Math Marks" required>
-              </div>
-              <div class="form-row">
-                <input type="number" id="mockTotal" placeholder="Max Marks (e.g. 300)" value="300" required>
-                <input type="number" id="mockNegatives" placeholder="Negative Marks" value="0" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Save Mock Test</button>
-            </form>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <h3>Weekly Focus Volume</h3>
-              <span class="badge">Last 7 Days</span>
-            </div>
-            <div class="chart-container-bar">
-              <canvas id="weeklyHoursChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="card mt-4">
-          <div class="card-header">
-            <h3>Mock Test History</h3>
-          </div>
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Test Name</th>
-                  <th>Date</th>
-                  <th>Phy</th>
-                  <th>Chem</th>
-                  <th>Math</th>
-                  <th>Total Score</th>
-                  <th>Negatives</th>
-                  <th>Accuracy</th>
-                </tr>
-              </thead>
-              <tbody id="mockTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 5: SETTINGS & BACKUP -->
+      <!-- TAB 5: SETTINGS & EXPORT -->
       <section id="view-settings" class="tab-pane">
         <div class="two-column-grid">
           <div class="card">
