@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calibre OS — Minimal Productivity & Study Tracker</title>
+  <title>Calibre — Precision Study & Focus Operating System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -15,7 +15,14 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-icon"></div>
+        <svg class="brand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="6"/>
+          <line x1="12" y1="18" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="6" y2="12"/>
+          <line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
         <span class="brand-name">CALIBRE <span>OS</span></span>
       </div>
 
@@ -24,46 +31,52 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
           Dashboard
         </button>
-        <button class="nav-btn" data-tab="tracker">
+        <button class="nav-btn" data-tab="calibration">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          Daily Grinder & Errors
+          Calibration Engine
         </button>
         <button class="nav-btn" data-tab="analytics">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-          Analytics
+          Analytics & Index
         </button>
         <button class="nav-btn" data-tab="settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-          Settings
+          System & Backup
         </button>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="stat-pill">
-          <span class="stat-label">Daily Focus</span>
-          <span class="stat-val" id="sidebarFocusTime">0m</span>
+      <!-- Sidebar Focus Audio Player -->
+      <div class="sidebar-audio">
+        <span class="audio-label">Ambient Audio Engine</span>
+        <div class="audio-controls">
+          <select id="audioNoiseType">
+            <option value="none">Off (Silence)</option>
+            <option value="brown">Brownian Noise</option>
+            <option value="pink">Pink Focus Noise</option>
+          </select>
+          <button id="btnToggleNoise" class="btn btn-tiny btn-secondary">Play</button>
         </div>
       </div>
     </aside>
 
     <!-- Main Workspace -->
     <main class="main-content">
-      <!-- Top Quick Stats Header -->
+      <!-- Top Primary Metrics Header -->
       <header class="top-header">
         <div class="metric-card">
-          <span class="metric-title">🔥 Current Streak</span>
+          <span class="metric-title">🔥 Consistency Streak</span>
           <span class="metric-value" id="topStreak">0 Days</span>
         </div>
         <div class="metric-card">
-          <span class="metric-title">⚡ Focus Hours</span>
+          <span class="metric-title">⏱️ Deep Focus Hours</span>
           <span class="metric-value" id="topHours">0.0h</span>
         </div>
         <div class="metric-card">
-          <span class="metric-title">🎯 Daily Completion</span>
+          <span class="metric-title">🎯 Directive Accuracy</span>
           <span class="metric-value" id="topDiscipline">0%</span>
         </div>
         <div class="metric-card">
-          <span class="metric-title">📊 Estimated Rank</span>
+          <span class="metric-title">🧭 Target Calibre (AIR)</span>
           <span class="metric-value rank" id="topRank">Top 5,000</span>
         </div>
       </header>
@@ -71,15 +84,15 @@
       <!-- VIEW 1: DASHBOARD -->
       <section id="view-dashboard" class="tab-view active">
         <div class="grid-2col">
-          <!-- Left: Deep Work Timer -->
+          <!-- Deep Work Engine -->
           <div class="card focus-timer-card">
             <div class="card-header">
               <h2 class="card-title">Deep Work Session</h2>
               <select id="timerPreset" class="dropdown">
-                <option value="25">Pomodoro (25 min)</option>
-                <option value="50" selected>Deep Focus (50 min)</option>
-                <option value="90">Full Block (90 min)</option>
-                <option value="180">Mock Exam (180 min)</option>
+                <option value="25">25 min (Pomodoro)</option>
+                <option value="50" selected>50 min (Standard Sprint)</option>
+                <option value="90">90 min (Monotask Block)</option>
+                <option value="180">180 min (Full Mock Exam)</option>
               </select>
             </div>
             
@@ -91,43 +104,42 @@
             </div>
 
             <div class="session-log">
-              <h4>Today's Completed Blocks</h4>
+              <h4>Today's Logged Focus Blocks</h4>
               <div id="completedBlocksList" class="chips-list">
-                <span class="empty-hint">No sessions logged yet today.</span>
+                <span class="empty-hint">No sessions completed yet today.</span>
               </div>
             </div>
           </div>
 
-          <!-- Right: Daily Directives (Routine Blocks) -->
+          <!-- Daily Directives -->
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Daily Directives</h2>
+              <h2 class="card-title">Daily Strategic Directives</h2>
               <span class="badge" id="directivesCount">0 / 0</span>
             </div>
 
             <div class="directives-container">
-              <!-- Add Directive Form -->
               <form id="directiveForm" class="add-task-form">
-                <input type="text" id="directiveInput" placeholder="Add actionable target (e.g., Solve 15 Rotational Motion Qs)..." required>
+                <input type="text" id="directiveInput" placeholder="Add clear target (e.g. 15 Thermodynamics PyQs)..." required>
                 <select id="directiveSlot">
                   <option value="Morning">Morning</option>
                   <option value="Afternoon">Afternoon</option>
                   <option value="Evening">Evening</option>
                 </select>
-                <button type="submit" class="btn btn-small btn-primary">+</button>
+                <button type="submit" class="btn btn-primary btn-small">+</button>
               </form>
 
               <div class="directive-slots">
                 <div class="slot-group">
-                  <div class="slot-title">Morning</div>
+                  <div class="slot-title">Morning Routine</div>
                   <div class="slot-items" id="slotMorning"></div>
                 </div>
                 <div class="slot-group">
-                  <div class="slot-title">Afternoon</div>
+                  <div class="slot-title">Afternoon Block</div>
                   <div class="slot-items" id="slotAfternoon"></div>
                 </div>
                 <div class="slot-group">
-                  <div class="slot-title">Evening</div>
+                  <div class="slot-title">Evening Review</div>
                   <div class="slot-items" id="slotEvening"></div>
                 </div>
               </div>
@@ -136,29 +148,28 @@
         </div>
       </section>
 
-      <!-- VIEW 2: TRACKER & ERROR LOG -->
-      <section id="view-tracker" class="tab-view">
+      <!-- VIEW 2: CALIBRATION & ERROR BOARD -->
+      <section id="view-calibration" class="tab-view">
         <div class="grid-2col">
-          <!-- Daily Action Grinder -->
+          <!-- Problem Calibration Engine -->
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Question / Practice Grinder</h2>
-              <span class="text-muted">Target: 15–20 Qs/subject</span>
+              <h2 class="card-title">Problem Calibration Engine</h2>
+              <span class="text-muted">Target: 15–25 Qs / subject</span>
             </div>
-            
             <div class="grinder-list" id="grinderList">
-              <!-- Rendered Dynamically -->
+              <!-- Rendered via JS -->
             </div>
           </div>
 
-          <!-- Log Mistake / Error -->
+          <!-- Log Error Input -->
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">Log Strategic Error</h2>
             </div>
             <form id="errorLogForm" class="form-stack">
               <div class="form-row">
-                <input type="text" id="errTopic" placeholder="Topic / Subtopic (e.g. Thermodynamics)" required>
+                <input type="text" id="errTopic" placeholder="Topic name (e.g. Electrostatics)" required>
                 <select id="errSubject">
                   <option value="Physics">Physics</option>
                   <option value="Chemistry">Chemistry</option>
@@ -168,22 +179,22 @@
               <div class="form-row">
                 <select id="errType">
                   <option value="Conceptual Gap">Conceptual Gap</option>
-                  <option value="Silly / Calculation">Silly / Calculation Error</option>
-                  <option value="Time Pressure">Time Management</option>
-                  <option value="Misread Question">Misread Question</option>
+                  <option value="Calculation Slip">Calculation Slip</option>
+                  <option value="Time Trap">Time Trap</option>
+                  <option value="Misread Constraint">Misread Constraint</option>
                 </select>
-                <input type="text" id="errNote" placeholder="What went wrong & key takeaway" required>
+                <input type="text" id="errNote" placeholder="Root cause & concrete takeaway" required>
               </div>
-              <button type="submit" class="btn btn-primary">Log Mistake (+Recalibrate Mastery)</button>
+              <button type="submit" class="btn btn-primary">Submit to Error Board</button>
             </form>
           </div>
         </div>
 
-        <!-- Error Log Table -->
+        <!-- Spaced Repetition Error Table -->
         <div class="card mt-4">
           <div class="card-header">
-            <h2 class="card-title">Active Error Log & Review Board</h2>
-            <span class="text-muted">Fix mistakes before repeating them</span>
+            <h2 class="card-title">Error Calibration & Spaced Review Board</h2>
+            <span class="text-muted">Dynamic repetition alerts (Day 3, 7, 21)</span>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -191,14 +202,14 @@
                 <tr>
                   <th>Topic</th>
                   <th>Subject</th>
-                  <th>Error Type</th>
-                  <th>Correction Note</th>
-                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Takeaway Note</th>
+                  <th>Spaced Review Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody id="errorLogBody">
-                <!-- Injected via JS -->
+                <!-- Rendered dynamically -->
               </tbody>
             </table>
           </div>
@@ -210,8 +221,8 @@
         <div class="grid-2col">
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Calculated Subject Mastery</h2>
-              <span class="text-muted">Calculated from Accuracy + Syllabus</span>
+              <h2 class="card-title">Calibrated Subject Index</h2>
+              <span class="text-muted">Live Radar based on solved vs error ratios</span>
             </div>
             <div class="chart-wrapper">
               <canvas id="radarChart"></canvas>
@@ -220,8 +231,8 @@
 
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Weekly Focus Hours</h2>
-              <span class="text-muted">Completed Deep Sessions</span>
+              <h2 class="card-title">Weekly Focus Hours Log</h2>
+              <span class="text-muted">Consistency breakdown</span>
             </div>
             <div class="chart-wrapper">
               <canvas id="weeklyBarChart"></canvas>
@@ -230,26 +241,55 @@
         </div>
       </section>
 
-      <!-- VIEW 4: SETTINGS -->
+      <!-- VIEW 4: SETTINGS, BACKUP & VIRAL CARD EXPORT -->
       <section id="view-settings" class="tab-view">
-        <div class="card max-w-600">
-          <div class="card-header">
-            <h2 class="card-title">Application Settings</h2>
+        <div class="grid-2col">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">System Settings</h2>
+            </div>
+            <div class="form-stack">
+              <div class="form-group">
+                <label>Daily Problem Target per Subject</label>
+                <input type="number" id="settingDailyTarget" value="20" min="5" max="60">
+              </div>
+              <div class="form-group">
+                <label>Syllabus Coverage: <span id="syllabusValDisplay">40%</span></label>
+                <input type="range" id="settingSyllabus" min="0" max="100" value="40">
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
+              </div>
+            </div>
+
+            <div class="backup-section mt-4">
+              <h3 class="card-title" style="font-size: 0.95rem; margin-bottom: 8px;">Persistent Backup & Sync</h3>
+              <p class="text-muted" style="margin-bottom: 12px;">Prevent data loss from browser cache resets by saving an offline JSON file.</p>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary btn-small" id="btnExportJSON">Export Backup (JSON)</button>
+                <label class="btn btn-secondary btn-small" style="cursor: pointer;">
+                  Import Backup <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </label>
+              </div>
+            </div>
           </div>
-          <div class="form-stack">
-            <div class="form-group">
-              <label>Daily Question Target per Subject</label>
-              <input type="number" id="settingDailyTarget" value="20" min="5" max="100">
+
+          <!-- Shareable Card Generator -->
+          <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="card-header">
+                <h2 class="card-title">Share Daily Calibre Report</h2>
+                <span class="badge">Study Groups</span>
+              </div>
+              <p class="text-muted" style="margin-bottom: 16px;">Generate a high-res summary card to track accountability on Reddit, Telegram, or Discord.</p>
+              
+              <!-- Hidden Offscreen Canvas for Rendering -->
+              <canvas id="shareCanvas" width="1080" height="1080" style="display: none;"></canvas>
             </div>
-            <div class="form-group">
-              <label>Syllabus Completion % (Class 11 & 12 Overall)</label>
-              <input type="range" id="settingSyllabus" min="0" max="100" value="35">
-              <span id="syllabusValDisplay">35%</span>
-            </div>
-            <div class="form-actions">
-              <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
-              <button class="btn btn-danger" id="btnResetData">Reset All Data</button>
-            </div>
+            
+            <button class="btn btn-primary" id="btnDownloadCard" style="width: 100%; padding: 14px;">
+              📥 Generate & Download Daily Summary Card
+            </button>
           </div>
         </div>
       </section>
