@@ -1,420 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus OS | Universal Tracker</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @media (min-width: 1025px) {
-            .span-2 { grid-column: span 2; }
-            .span-3 { grid-column: span 3; }
-        }
-        
-        .mobile-header { display: none; justify-content: space-between; align-items: center; padding: 15px; background: var(--glass-bg); border-bottom: 1px solid var(--glass-border); margin-bottom: 15px; border-radius: 12px; }
-        .mobile-toggle { background: transparent; border: none; color: var(--primary-neon); font-size: 1.5rem; cursor: pointer; }
-        @media (max-width: 768px) {
-            .mobile-header { display: flex; }
-            .sidebar { position: fixed; top: 0; left: -100%; height: 100vh; width: 260px; z-index: 1000; transition: 0.3s ease-in-out; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); }
-            .sidebar.active { left: 0; }
-            .rank-predictor { margin-top: auto; margin-bottom: 20px; }
-        }
-
-        .inline-task-form { display: flex; gap: 8px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.03); padding: 6px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .task-input-text { flex: 1; background: transparent; border: none; color: #fff; font-size: 0.8rem; padding: 4px 8px; outline: none; }
-        .task-input-xp { width: 50px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--primary-neon); font-size: 0.8rem; border-radius: 4px; text-align: center; outline: none; }
-        .task-add-btn { background: transparent; border: none; color: var(--primary-neon); cursor: pointer; padding: 0 8px; font-size: 0.9rem; transition: transform 0.2s; }
-        .task-add-btn:hover { transform: scale(1.2); }
-        .directive-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-right: 5px; cursor: grab; transition: opacity 0.2s; }
-        .directive-row:active { cursor: grabbing; }
-        .directive-row.dragging { opacity: 0.4; background: rgba(255,255,255,0.05); border-radius: 6px; }
-        .directive-row .custom-checkbox { margin-bottom: 0 !important; flex: 1; pointer-events: none; } 
-        .directive-row input[type="checkbox"], .directive-row .task-delete-btn { pointer-events: auto; }
-        .task-delete-btn { background: transparent; border: none; color: #ff4a5a; cursor: pointer; font-size: 0.85rem; opacity: 0.5; transition: opacity 0.2s; }
-        .task-delete-btn:hover { opacity: 1; }
-        .completed-task-text { text-decoration: line-through; color: var(--text-muted) !important; }
-
-        .badge-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-around; margin-top: 15px; }
-        .badge-item { display: flex; flex-direction: column; align-items: center; text-align: center; width: 80px; gap: 5px; }
-        .badge-icon-box { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: 0.4s; }
-        .badge-locked .badge-icon-box { background: rgba(255,255,255,0.05); color: #444; border: 2px dashed #444; }
-        .badge-unlocked .badge-icon-box { background: rgba(0, 242, 254, 0.1); color: var(--primary-neon); border: 2px solid var(--primary-neon); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
-        .badge-title { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        .badge-unlocked .badge-title { color: #fff; }
-        
-        .color-picker { appearance: none; -webkit-appearance: none; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; overflow: hidden; padding: 0; background: none; }
-        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-        .color-picker::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus OS — Minimal Productivity & Study Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <nav class="sidebar glass" id="mobileSidebar">
-            <div class="brand">
-                <i class="fa-solid fa-atom neon-text"></i>
-                <h2>NEXUS <span class="neon-text">OS</span></h2>
-                <button class="mobile-toggle" id="closeMenuBtn" style="display: none;"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <ul class="nav-links">
-                <li class="active" data-target="all"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
-                <li data-target="tracker-card"><i class="fa-solid fa-list-check"></i> Tracker</li>
-                <li data-target="chart-card"><i class="fa-solid fa-chart-pie"></i> Analytics</li>
-                <li data-target="goals-card"><i class="fa-solid fa-bullseye"></i> Goals</li>
-                <li data-target="settings-card"><i class="fa-solid fa-gear"></i> Settings</li>
-            </ul>
-            <div class="rank-predictor glass">
-                <p class="predictor-title">PREDICTED <span id="displayExamTitle">JEE</span> RESULT</p>
-                <h3 class="neon-text"><span id="displayMetricPrefix">AIR</span> <span id="predictedRankDisplay">900,000</span></h3>
-                <p class="predictor-subtext">Grow XP & Discipline to improve!</p>
-            </div>
-        </nav>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon"></div>
+        <span class="brand-name">FOCUS <span>OS</span></span>
+      </div>
 
-        <main class="main-content">
+      <nav class="nav-menu">
+        <button class="nav-btn active" data-tab="dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-tab="tracker">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Daily Grinder & Errors
+        </button>
+        <button class="nav-btn" data-tab="analytics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Analytics
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="stat-pill">
+          <span class="stat-label">Daily Focus</span>
+          <span class="stat-val" id="sidebarFocusTime">0m</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Top Quick Stats Header -->
+      <header class="top-header">
+        <div class="metric-card">
+          <span class="metric-title">🔥 Current Streak</span>
+          <span class="metric-value" id="topStreak">0 Days</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">⚡ Focus Hours</span>
+          <span class="metric-value" id="topHours">0.0h</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">🎯 Daily Completion</span>
+          <span class="metric-value" id="topDiscipline">0%</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">📊 Estimated Rank</span>
+          <span class="metric-value rank" id="topRank">Top 5,000</span>
+        </div>
+      </header>
+
+      <!-- VIEW 1: DASHBOARD -->
+      <section id="view-dashboard" class="tab-view active">
+        <div class="grid-2col">
+          <!-- Left: Deep Work Timer -->
+          <div class="card focus-timer-card">
+            <div class="card-header">
+              <h2 class="card-title">Deep Work Session</h2>
+              <select id="timerPreset" class="dropdown">
+                <option value="25">Pomodoro (25 min)</option>
+                <option value="50" selected>Deep Focus (50 min)</option>
+                <option value="90">Full Block (90 min)</option>
+                <option value="180">Mock Exam (180 min)</option>
+              </select>
+            </div>
             
-            <div class="mobile-header">
-                <h3 style="margin:0; font-family: 'Orbitron', sans-serif;"><i class="fa-solid fa-atom neon-text"></i> NEXUS OS</h3>
-                <button class="mobile-toggle" id="openMenuBtn"><i class="fa-solid fa-bars"></i></button>
+            <div class="timer-display" id="timerDisplay">50:00</div>
+            
+            <div class="timer-controls">
+              <button class="btn btn-primary" id="btnTimerToggle">Start Session</button>
+              <button class="btn btn-secondary" id="btnTimerReset">Reset</button>
             </div>
 
-            <header class="glass">
-                <div class="user-stats">
-                    <div class="stat-badge">
-                        <i class="fa-solid fa-fire fire-icon"></i>
-                        <div>
-                            <span class="stat-title">Streak</span>
-                            <span class="stat-value" id="streakDisplay">0 Days</span>
-                        </div>
-                    </div>
-                    <div class="stat-badge">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <div>
-                            <span class="stat-title">Level <span id="levelDisplay">1</span></span>
-                            <div class="progress-container small">
-                                <div class="progress-bar neon-bg" id="xpBar" style="width: 0%;"></div>
-                            </div>
-                            <span class="stat-title"><span id="xpDisplay">0</span>/1000 XP</span>
-                        </div>
-                    </div>
-                    <div class="stat-badge">
-                        <i class="fa-solid fa-shield-halved text-success"></i>
-                        <div>
-                            <span class="stat-title">Discipline Score</span>
-                            <span class="stat-value text-success" id="disciplineScore">0%</span>
-                        </div>
-                    </div>
+            <div class="session-log">
+              <h4>Today's Completed Blocks</h4>
+              <div id="completedBlocksList" class="chips-list">
+                <span class="empty-hint">No sessions logged yet today.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Daily Directives (Routine Blocks) -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Daily Directives</h2>
+              <span class="badge" id="directivesCount">0 / 0</span>
+            </div>
+
+            <div class="directives-container">
+              <!-- Add Directive Form -->
+              <form id="directiveForm" class="add-task-form">
+                <input type="text" id="directiveInput" placeholder="Add actionable target (e.g., Solve 15 Rotational Motion Qs)..." required>
+                <select id="directiveSlot">
+                  <option value="Morning">Morning</option>
+                  <option value="Afternoon">Afternoon</option>
+                  <option value="Evening">Evening</option>
+                </select>
+                <button type="submit" class="btn btn-small btn-primary">+</button>
+              </form>
+
+              <div class="directive-slots">
+                <div class="slot-group">
+                  <div class="slot-title">Morning</div>
+                  <div class="slot-items" id="slotMorning"></div>
                 </div>
-            </header>
-
-            <div class="content-grid">
-                <section class="glass card focus-card dashboard-item">
-                    <h3><i class="fa-solid fa-brain"></i> Deep Work Session</h3>
-                    <select id="blockSelector" class="glass-select"></select>
-                    
-                    <div class="timer-display" id="timer">00:00</div>
-                    <div class="timer-controls">
-                        <button id="startTimer" class="btn primary-btn">Start Focus</button>
-                        <button id="resetTimer" class="btn secondary-btn">Reset</button>
-                    </div>
-                    <div class="session-log-container">
-                        <h4>Today's Completed Blocks</h4>
-                        <ul id="sessionLog" class="session-log"></ul>
-                    </div>
-                </section>
-
-                <section class="glass card directives-card dashboard-item">
-                    <h3><i class="fa-solid fa-list-check"></i> Daily Directives <span style="font-size:0.6rem; color:var(--text-muted);">(Drag to reorder)</span></h3>
-                    <div class="schedule-block">
-                        <div class="tracker-category">
-                            <h4 id="displayBlock1">Morning Block</h4>
-                            <div class="inline-task-form">
-                                <input type="text" id="input-text-morning" placeholder="Add directive..." class="task-input-text">
-                                <input type="number" id="input-xp-morning" value="20" min="5" max="100" class="task-input-xp">
-                                <button class="task-add-btn" data-block="morning"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                            <div id="list-container-morning" class="drag-container"></div>
-                        </div>
-                        <div class="tracker-category">
-                            <h4 id="displayBlock2">Afternoon Block</h4>
-                            <div class="inline-task-form">
-                                <input type="text" id="input-text-afternoon" placeholder="Add directive..." class="task-input-text">
-                                <input type="number" id="input-xp-afternoon" value="30" min="5" max="100" class="task-input-xp">
-                                <button class="task-add-btn" data-block="afternoon"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                            <div id="list-container-afternoon" class="drag-container"></div>
-                        </div>
-                        <div class="tracker-category">
-                            <h4 id="displayBlock3">Evening Block</h4>
-                            <div class="inline-task-form">
-                                <input type="text" id="input-text-evening" placeholder="Add directive..." class="task-input-text">
-                                <input type="number" id="input-xp-evening" value="20" min="5" max="100" class="task-input-xp">
-                                <button class="task-add-btn" data-block="evening"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                            <div id="list-container-evening" class="drag-container"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="glass card goals-card dashboard-item">
-                    <h3><i class="fa-solid fa-medal" style="color: var(--warning);"></i> Trophies & Milestones</h3>
-                    <div class="badge-grid" id="badgeContainer"></div>
-                </section>
-
-                <section class="glass card goals-card dashboard-item">
-                    <h3><i class="fa-solid fa-route"></i> Long-Term Trajectory</h3>
-                    <div class="goal-item">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                            <span id="displayGoal1">Phase 1 Syllabus</span>
-                            <div class="chapter-controls">
-                                <button id="subChap11" class="chap-btn">-</button>
-                                <span id="chapCount11" style="font-size: 0.75rem; color: var(--primary-neon); width: 85px; text-align: right;">0 / 40 Units</span>
-                                <button id="addChap11" class="chap-btn" style="margin-left:5px;">+</button>
-                            </div>
-                        </div>
-                        <div class="progress-container"><div class="progress-bar neon-bg" id="progBar11" style="width: 0%;">0%</div></div>
-                    </div>
-                    <div class="goal-item">
-                        <span id="displayGoal2">Phase 2 Syllabus</span>
-                        <div class="progress-container"><div class="progress-bar neon-bg-secondary" style="width: 0%;">0%</div></div>
-                    </div>
-                    <div class="goal-item">
-                        <span id="displayGoal3">Mock Test Accuracy</span>
-                        <div class="progress-container"><div class="progress-bar text-warning" style="background-color: var(--warning); width: 0%;">0%</div></div>
-                    </div>
-                </section>
-
-                <section class="glass card chart-card dashboard-item">
-                    <h3><i class="fa-solid fa-radar"></i> Subject Mastery</h3>
-                    <canvas id="subjectRadar"></canvas>
-                    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.75rem; color: var(--text-muted);">
-                        <div><label id="mastLabel0">Subject 1</label><input type="range" id="mastery0" min="0" max="100" class="neon-slider"></div>
-                        <div><label id="mastLabel1">Subject 2</label><input type="range" id="mastery1" min="0" max="100" class="neon-slider"></div>
-                        <div><label id="mastLabel2">Subject 3</label><input type="range" id="mastery2" min="0" max="100" class="neon-slider"></div>
-                        <div><label id="mastLabel3">Subject 4</label><input type="range" id="mastery3" min="0" max="100" class="neon-slider"></div>
-                        <div><label id="mastLabel4">Subject 5</label><input type="range" id="mastery4" min="0" max="100" class="neon-slider"></div>
-                    </div>
-                </section>
-
-                <section class="glass card chart-card dashboard-item span-2">
-                    <h3><i class="fa-solid fa-chart-column"></i> Weekly Study Hours</h3>
-                    <canvas id="weeklyBar"></canvas>
-                    <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; gap: 5px;">
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--text-muted);">Mon</label><br><input type="number" id="hrs0" min="0" max="24" step="0.5" class="chart-input"></div>
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--text-muted);">Tue</label><br><input type="number" id="hrs1" min="0" max="24" step="0.5" class="chart-input"></div>
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--text-muted);">Wed</label><br><input type="number" id="hrs2" min="0" max="24" step="0.5" class="chart-input"></div>
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--text-muted);">Thu</label><br><input type="number" id="hrs3" min="0" max="24" step="0.5" class="chart-input"></div>
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--text-muted);">Fri</label><br><input type="number" id="hrs4" min="0" max="24" step="0.5" class="chart-input"></div>
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--text-muted);">Sat</label><br><input type="number" id="hrs5" min="0" max="24" step="0.5" class="chart-input"></div>
-                        <div style="text-align: center;"><label style="font-size: 0.7rem; color: var(--primary-neon);">Sun</label><br><input type="number" id="hrs6" min="0" max="24" step="0.5" class="chart-input"></div>
-                    </div>
-                </section>
-
-                <section class="glass card chart-card dashboard-item span-3">
-                    <h3><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Success & Improvement Metrics</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div class="stat-badge" style="background: rgba(255,255,255,0.02);">
-                            <i class="fa-solid fa-bolt" style="color: var(--primary-neon);"></i>
-                            <div>
-                                <span class="stat-title">Weekly XP Gained</span>
-                                <span class="stat-value" id="weeklyXpDisplay">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-badge" style="background: rgba(255,255,255,0.02);">
-                            <i class="fa-solid fa-medal" style="color: var(--secondary-neon);"></i>
-                            <div>
-                                <span class="stat-title">Monthly XP Gained</span>
-                                <span class="stat-value" id="monthlyXpDisplay">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-badge" style="background: rgba(255,255,255,0.02);">
-                            <i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i>
-                            <div>
-                                <span class="stat-title">Avg Discipline (7 Days)</span>
-                                <span class="stat-value text-success" id="avgDisciplineDisplay">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="glass card tracker-card span-2" style="display: none;">
-                    <h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--secondary-neon);"></i> The Strategic Error Log</h3>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.5rem;">
-                        <input type="text" id="errChap" placeholder="Topic / Chapter" style="flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
-                        <select id="errType" style="flex: 1; min-width: 150px; background: #0f0f15; border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
-                            <option value="Conceptual Gap">Conceptual Gap</option>
-                            <option value="Silly/Calculation Error">Silly/Calculation Error</option>
-                            <option value="Memory/Fact Forgotten">Memory/Fact Forgotten</option>
-                        </select>
-                        <input type="text" id="errNote" placeholder="What went wrong?" style="flex: 2; min-width: 200px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
-                        <button id="addErrorBtn" class="primary-btn" style="padding: 0.6rem 1.5rem;">Log (+50 XP)</button>
-                    </div>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--glass-border); color: var(--primary-neon);">
-                                    <th style="padding: 0.8rem;">Topic</th>
-                                    <th style="padding: 0.8rem;">Error Type</th>
-                                    <th style="padding: 0.8rem;">Correction Note</th>
-                                    <th style="padding: 0.8rem; text-align: center;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="errorLogTableBody"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="glass card tracker-card" style="display: none;">
-                    <h3><i class="fa-solid fa-crosshairs" style="color: var(--secondary-neon);"></i> Backlog Bounty Board</h3>
-                    <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
-                        <input type="text" id="backlogInput" placeholder="Topic..." style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
-                        <input type="number" id="backlogXP" placeholder="XP" value="200" style="width: 70px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 0.6rem; border-radius: 6px;">
-                        <button id="addBacklogBtn" class="primary-btn" style="padding: 0.6rem;">Add</button>
-                    </div>
-                    <ul id="backlogList" class="session-log" style="max-height: 250px;"></ul>
-                </section>
-
-                <section class="glass card tracker-card span-3" style="display: none;">
-                    <h3><i class="fa-solid fa-bullseye" style="color: var(--primary-neon);"></i> Daily Action Grinder</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div class="goal-item">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                                <span id="pyqTitle0">Subject 1 Actions</span>
-                                <div class="chapter-controls">
-                                    <button class="chap-btn pyq-sub" data-subject="physics">-</button>
-                                    <span id="pyqCountphysics" style="font-size: 0.75rem; color: var(--primary-neon); width: 85px; text-align: right;">0 / 300</span>
-                                    <button class="chap-btn pyq-add" data-subject="physics" style="margin-left:5px;">+</button>
-                                </div>
-                            </div>
-                            <div class="progress-container"><div class="progress-bar neon-bg" id="pyqBarphysics" style="width: 0%;">0%</div></div>
-                        </div>
-                        <div class="goal-item">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                                <span id="pyqTitle1">Subject 2 Actions</span>
-                                <div class="chapter-controls">
-                                    <button class="chap-btn pyq-sub" data-subject="chemistry">-</button>
-                                    <span id="pyqCountchemistry" style="font-size: 0.75rem; color: var(--secondary-neon); width: 85px; text-align: right;">0 / 300</span>
-                                    <button class="chap-btn pyq-add" data-subject="chemistry" style="margin-left:5px;">+</button>
-                                </div>
-                            </div>
-                            <div class="progress-container"><div class="progress-bar neon-bg-secondary" id="pyqBarchemistry" style="width: 0%;">0%</div></div>
-                        </div>
-                        <div class="goal-item">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                                <span id="pyqTitle2">Subject 3 Actions</span>
-                                <div class="chapter-controls">
-                                    <button class="chap-btn pyq-sub" data-subject="maths">-</button>
-                                    <span id="pyqCountmaths" style="font-size: 0.75rem; color: var(--warning); width: 85px; text-align: right;">0 / 300</span>
-                                    <button class="chap-btn pyq-add" data-subject="maths" style="margin-left:5px;">+</button>
-                                </div>
-                            </div>
-                            <div class="progress-container"><div class="progress-bar text-warning" id="pyqBarmaths" style="background-color: var(--warning); width: 0%;">0%</div></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="glass card settings-card span-3" style="display: none;">
-                    <h3><i class="fa-solid fa-gear" style="color: var(--primary-neon);"></i> System Configuration</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">The OS is yours. Customize colors, timers, and targets to fit your life.</p>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-                        
-                        <div>
-                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Identity & Theme</h4>
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Target Exam / Goal</label>
-                            <input type="text" id="confExam" class="glass-select" style="margin-bottom: 15px;">
-                            
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Primary Metric (e.g., AIR, Score)</label>
-                            <input type="text" id="confMetric" class="glass-select" style="margin-bottom: 15px;">
-                            
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <div>
-                                    <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Primary Color</label>
-                                    <input type="color" id="confPrimaryColor" class="color-picker" value="#00f2fe">
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Secondary Color</label>
-                                    <input type="color" id="confSecondaryColor" class="color-picker" value="#ff0844">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Timer Presets</h4>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" id="confT1Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 1 Name">
-                                <input type="number" id="confT1Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" id="confT2Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 2 Name">
-                                <input type="number" id="confT2Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" id="confT3Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 3 Name">
-                                <input type="number" id="confT3Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <input type="text" id="confT4Name" class="glass-select" style="margin-bottom: 0;" placeholder="Preset 4 Name">
-                                <input type="number" id="confT4Min" class="glass-select" style="margin-bottom: 0; width: 80px;" placeholder="Min">
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Daily Routine Blocks</h4>
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Block 1 Name</label>
-                            <input type="text" id="confBlock1" class="glass-select" style="margin-bottom: 15px;">
-                            
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Block 2 Name</label>
-                            <input type="text" id="confBlock2" class="glass-select" style="margin-bottom: 15px;">
-                            
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Block 3 Name</label>
-                            <input type="text" id="confBlock3" class="glass-select" style="margin-bottom: 15px;">
-                        </div>
-
-                        <div>
-                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Goal Targets</h4>
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Milestone 1 Name</label>
-                            <input type="text" id="confGoal1" class="glass-select" style="margin-bottom: 10px;">
-                            
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Milestone 1 Target Number (e.g., 40 Chapters)</label>
-                            <input type="number" id="confMaxChap" class="glass-select" style="margin-bottom: 15px;">
-
-                            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #ccc;">Daily Grinder Target Number (e.g., 300 Qs)</label>
-                            <input type="number" id="confMaxQ" class="glass-select" style="margin-bottom: 15px;">
-                        </div>
-
-                        <div>
-                            <h4 style="color: var(--secondary-neon); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Core Subjects</h4>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <input type="text" id="confSub1" class="glass-select" placeholder="Subject 1">
-                                <input type="text" id="confSub2" class="glass-select" placeholder="Subject 2">
-                                <input type="text" id="confSub3" class="glass-select" placeholder="Subject 3">
-                                <input type="text" id="confSub4" class="glass-select" placeholder="Subject 4">
-                                <input type="text" id="confSub5" class="glass-select" placeholder="Subject 5">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 2rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2rem;">
-                        <button id="saveConfigBtn" class="btn primary-btn" style="padding: 10px 40px; font-size: 1.1rem;">Save & Apply Globally</button>
-                    </div>
-
-                    <div style="margin-top: 2rem;">
-                        <h4 style="color: #ff4a5a; margin-bottom: 10px;"><i class="fa-solid fa-shield-halved"></i> Data Management & Safety</h4>
-                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Export your profile to save your XP and streaks before clearing your browser cache.</p>
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <button id="exportDataBtn" class="btn secondary-btn"><i class="fa-solid fa-download"></i> Backup Profile (.json)</button>
-                            <label class="btn secondary-btn" style="cursor: pointer;">
-                                <i class="fa-solid fa-upload"></i> Restore Profile
-                                <input type="file" id="importDataFile" accept=".json" style="display: none;">
-                            </label>
-                        </div>
-                    </div>
-                </section>
+                <div class="slot-group">
+                  <div class="slot-title">Afternoon</div>
+                  <div class="slot-items" id="slotAfternoon"></div>
+                </div>
+                <div class="slot-group">
+                  <div class="slot-title">Evening</div>
+                  <div class="slot-items" id="slotEvening"></div>
+                </div>
+              </div>
             </div>
-        </main>
-    </div>
-    <script src="script.js"></script>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: TRACKER & ERROR LOG -->
+      <section id="view-tracker" class="tab-view">
+        <div class="grid-2col">
+          <!-- Daily Action Grinder -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Question / Practice Grinder</h2>
+              <span class="text-muted">Target: 15–20 Qs/subject</span>
+            </div>
+            
+            <div class="grinder-list" id="grinderList">
+              <!-- Rendered Dynamically -->
+            </div>
+          </div>
+
+          <!-- Log Mistake / Error -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Log Strategic Error</h2>
+            </div>
+            <form id="errorLogForm" class="form-stack">
+              <div class="form-row">
+                <input type="text" id="errTopic" placeholder="Topic / Subtopic (e.g. Thermodynamics)" required>
+                <select id="errSubject">
+                  <option value="Physics">Physics</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Mathematics">Mathematics</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <select id="errType">
+                  <option value="Conceptual Gap">Conceptual Gap</option>
+                  <option value="Silly / Calculation">Silly / Calculation Error</option>
+                  <option value="Time Pressure">Time Management</option>
+                  <option value="Misread Question">Misread Question</option>
+                </select>
+                <input type="text" id="errNote" placeholder="What went wrong & key takeaway" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Log Mistake (+Recalibrate Mastery)</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Error Log Table -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h2 class="card-title">Active Error Log & Review Board</h2>
+            <span class="text-muted">Fix mistakes before repeating them</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Topic</th>
+                  <th>Subject</th>
+                  <th>Error Type</th>
+                  <th>Correction Note</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="errorLogBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: ANALYTICS -->
+      <section id="view-analytics" class="tab-view">
+        <div class="grid-2col">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Calculated Subject Mastery</h2>
+              <span class="text-muted">Calculated from Accuracy + Syllabus</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="radarChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Weekly Focus Hours</h2>
+              <span class="text-muted">Completed Deep Sessions</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="weeklyBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: SETTINGS -->
+      <section id="view-settings" class="tab-view">
+        <div class="card max-w-600">
+          <div class="card-header">
+            <h2 class="card-title">Application Settings</h2>
+          </div>
+          <div class="form-stack">
+            <div class="form-group">
+              <label>Daily Question Target per Subject</label>
+              <input type="number" id="settingDailyTarget" value="20" min="5" max="100">
+            </div>
+            <div class="form-group">
+              <label>Syllabus Completion % (Class 11 & 12 Overall)</label>
+              <input type="range" id="settingSyllabus" min="0" max="100" value="35">
+              <span id="syllabusValDisplay">35%</span>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
+              <button class="btn btn-danger" id="btnResetData">Reset All Data</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
