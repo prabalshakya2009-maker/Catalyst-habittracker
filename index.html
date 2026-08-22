@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calibre OS — Precision Study & Focus Workspace</title>
+  <title>Calibre — Student Focus & Study Workspace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5.0">
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -15,8 +15,8 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/>
             <circle cx="12" cy="12" r="4"/>
             <line x1="12" y1="2" x2="12" y2="6"/>
@@ -25,101 +25,71 @@
             <line x1="18" y1="12" x2="22" y2="12"/>
           </svg>
         </div>
-        <div class="brand-text">
-          <span class="brand-name">CALIBRE</span>
-          <span class="brand-tag">PRO</span>
-        </div>
+        <span class="brand-title">CALIBRE</span>
       </div>
 
-      <nav class="nav-stack">
-        <button class="nav-item active" data-tab="dashboard">
+      <nav class="nav-menu">
+        <button class="nav-link active" data-tab="dashboard">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
           Dashboard
         </button>
-        <button class="nav-item" data-tab="grinder">
+        <button class="nav-link" data-tab="practice">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Problem Calibration[cite: 1]
+          Question Tracker
         </button>
-        <button class="nav-item" data-tab="errors">
+        <button class="nav-link" data-tab="mistakes">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Error Calibration Board[cite: 1]
+          Mistake Notebook
         </button>
-        <button class="nav-item" data-tab="mocks">
+        <button class="nav-link" data-tab="mocks">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Mock Analytics
+          Mock Test Analytics
         </button>
-        <button class="nav-item" data-tab="settings">
+        <button class="nav-link" data-tab="settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          System & Backup
+          Settings & Backup
         </button>
       </nav>
 
-      <!-- Synthesized Focus Audio Engine -->
-      <div class="sidebar-widget">
-        <div class="widget-header">
-          <span class="widget-title">Binaural Focus Audio</span>
-          <span class="status-indicator" id="audioIndicator"></span>
-        </div>
-        <div class="widget-controls">
-          <select id="audioPreset">
-            <option value="none">Off (Mute)</option>
-            <option value="gamma">40 Hz Gamma (Deep Focus)</option>
-            <option value="alpha">10 Hz Alpha (Retention)</option>
-            <option value="brown">Brownian Noise</option>
-          </select>
-          <button class="btn btn-secondary btn-icon" id="btnAudioToggle">Play</button>
-        </div>
+      <div class="sidebar-footer">
+        <span class="footer-label">Status: All Data Saved Locally</span>
       </div>
     </aside>
 
     <!-- Main Workspace -->
-    <main class="content-viewport">
-      <!-- Top Primary Metrics Bar -->
-      <header class="metric-ribbon">
-        <div class="metric-card">
-          <span class="metric-label">Streak Velocity</span>
-          <div class="metric-value-row">
-            <span class="metric-val" id="topStreak">0</span>
-            <span class="metric-unit">Days</span>
-          </div>
-          <span class="metric-trend positive" id="streakSub">Active Continuous</span>
+    <main class="main-content">
+      <!-- Top Metrics Ribbon -->
+      <header class="top-stats-ribbon">
+        <div class="stat-box">
+          <span class="stat-label">Daily Streak</span>
+          <span class="stat-value" id="topStreak">1 Day</span>
+          <span class="stat-sub" id="topStreakStatus">Consistency on track</span>
         </div>
-
-        <div class="metric-card">
-          <span class="metric-label">Deep Focus Time</span>
-          <div class="metric-value-row">
-            <span class="metric-val" id="topHours">0.0</span>
-            <span class="metric-unit">Hours</span>
-          </div>
-          <span class="metric-trend" id="focusGoalStatus">Daily Target: 5.0h</span>
+        <div class="stat-box">
+          <span class="stat-label">Study Time Today</span>
+          <span class="stat-value" id="topFocusTime">0.0h</span>
+          <span class="stat-sub">Goal: 5.0h daily</span>
         </div>
-
-        <div class="metric-card">
-          <span class="metric-label">Exam Run-Rate</span>
-          <div class="metric-value-row">
-            <span class="metric-val" id="topPace">--</span>
-            <span class="metric-unit">Qs / Day</span>
-          </div>
-          <span class="metric-trend" id="examDaysLeft">Targeting Session 1</span>
+        <div class="stat-box">
+          <span class="stat-label">Exam Countdown</span>
+          <span class="stat-value" id="topCountdown">-- Days</span>
+          <span class="stat-sub" id="topPaceRequired">Required pace calculating...</span>
         </div>
-
-        <div class="metric-card">
-          <span class="metric-label">Target Calibre (AIR)[cite: 1]</span>
-          <div class="metric-value-row">
-            <span class="metric-val highlight" id="topRank">Top 5,000</span>
-          </div>
-          <span class="metric-trend" id="mockPredictorStatus">Calibrated from Mocks</span>
+        <div class="stat-box">
+          <span class="stat-label">Target Rank (AIR)</span>
+          <span class="stat-value accent" id="topRankPrediction">Top 5,000</span>
+          <span class="stat-sub">Based on logged mocks</span>
         </div>
       </header>
 
       <!-- TAB 1: DASHBOARD -->
-      <section id="view-dashboard" class="tab-view active">
-        <div class="dashboard-grid">
-          <!-- Left Column: Precision Timer -->
-          <div class="panel timer-panel">
-            <div class="panel-head">
-              <h3>Monotask Focus Engine</h3>
-              <div class="preset-switch">
+      <section id="view-dashboard" class="tab-pane active">
+        <div class="two-column-grid">
+          <!-- Left: Integrated Focus Timer -->
+          <div class="card timer-card">
+            <div class="card-header">
+              <h3>Focus Session</h3>
+              <div class="timer-presets">
                 <button class="preset-btn" data-time="25">25m</button>
                 <button class="preset-btn active" data-time="50">50m</button>
                 <button class="preset-btn" data-time="90">90m</button>
@@ -127,39 +97,51 @@
               </div>
             </div>
 
-            <div class="timer-display-container">
-              <div class="timer-dial" id="timerClock">50:00</div>
-              <span class="timer-mode-tag" id="timerModeTag">Sprint Block</span>
+            <div class="timer-display-wrap">
+              <div class="timer-display" id="timerClock">50:00</div>
+              <span class="timer-tag" id="timerTag">Deep Focus Block</span>
             </div>
 
-            <div class="timer-action-row">
-              <button class="btn btn-primary btn-xl" id="btnTimerStart">Start Session</button>
-              <button class="btn btn-secondary btn-xl" id="btnTimerReset">Reset</button>
+            <!-- Built-in Ambient Audio Controls -->
+            <div class="timer-audio-bar">
+              <span class="audio-title">🎧 Background Audio:</span>
+              <select id="audioSelect">
+                <option value="none">Off (Silence)</option>
+                <option value="gamma">40 Hz Gamma Focus</option>
+                <option value="alpha">10 Hz Alpha Memory</option>
+                <option value="brown">Brownian Noise</option>
+              </select>
+              <button class="btn btn-secondary btn-small" id="btnAudioToggle">Play</button>
             </div>
 
-            <div class="session-feed">
-              <span class="section-microhead">Today's Completed Blocks</span>
-              <div class="chip-container" id="completedSessionsLog">
-                <span class="empty-state">No focus blocks recorded today.</span>
+            <div class="timer-actions">
+              <button class="btn btn-primary btn-large" id="btnTimerStart">Start Session</button>
+              <button class="btn btn-secondary btn-large" id="btnTimerReset">Reset</button>
+            </div>
+
+            <div class="completed-blocks-section">
+              <span class="section-title">Today's Completed Blocks</span>
+              <div class="chip-list" id="completedBlocksList">
+                <span class="empty-hint">No sessions completed yet today.</span>
               </div>
             </div>
           </div>
 
-          <!-- Right Column: Directives & Radar Overview -->
-          <div class="dashboard-right-stack">
-            <!-- Strategic Daily Directives -->
-            <div class="panel">
-              <div class="panel-head">
+          <!-- Right Column: Today's Tasks & Subject Mastery -->
+          <div class="right-column-stack">
+            <!-- Today's Study Tasks -->
+            <div class="card">
+              <div class="card-header">
                 <div>
-                  <h3>Daily Directives</h3>
-                  <p class="panel-desc">Lock in high-priority execution blocks</p>
+                  <h3>Today's Plan</h3>
+                  <p class="card-sub">Focus on 2-3 key goals each day</p>
                 </div>
-                <span class="badge" id="directiveCounter">0/0 Completed</span>
+                <span class="badge" id="taskDoneCounter">0/0 Done</span>
               </div>
 
-              <form id="directiveForm" class="input-inline-form">
-                <input type="text" id="directiveTextInput" placeholder="Add verified action item (e.g. 15 Rotation PYQs)..." required>
-                <select id="directiveTimeSlot">
+              <form id="todoForm" class="todo-form">
+                <input type="text" id="todoInput" placeholder="What will you study next? (e.g. 15 Thermodynamics Qs)" required>
+                <select id="todoSlot">
                   <option value="Morning">Morning</option>
                   <option value="Afternoon">Afternoon</option>
                   <option value="Evening">Evening</option>
@@ -167,94 +149,96 @@
                 <button type="submit" class="btn btn-primary">+</button>
               </form>
 
-              <div class="directive-timeline">
-                <div class="timeline-slot" id="slotGroupMorning">
-                  <div class="slot-marker">Morning</div>
-                  <div class="slot-tasks" id="tasksMorning"></div>
+              <div class="task-slots-container">
+                <div class="slot-box" id="slotMorning">
+                  <span class="slot-name">Morning</span>
+                  <div class="slot-list" id="tasksListMorning"></div>
                 </div>
-                <div class="timeline-slot" id="slotGroupAfternoon">
-                  <div class="slot-marker">Afternoon</div>
-                  <div class="slot-tasks" id="tasksAfternoon"></div>
+                <div class="slot-box" id="slotAfternoon">
+                  <span class="slot-name">Afternoon</span>
+                  <div class="slot-list" id="tasksListAfternoon"></div>
                 </div>
-                <div class="timeline-slot" id="slotGroupEvening">
-                  <div class="slot-marker">Evening</div>
-                  <div class="slot-tasks" id="tasksEvening"></div>
+                <div class="slot-box" id="slotEvening">
+                  <span class="slot-name">Evening</span>
+                  <div class="slot-list" id="tasksListEvening"></div>
                 </div>
               </div>
             </div>
 
-            <!-- Subject Mastery Radar Preview -->
-            <div class="panel">
-              <div class="panel-head">
-                <h3>Calibrated Subject Index[cite: 1]</h3>
-                <span class="badge badge-accent">Live Computed</span>
+            <!-- Subject Mastery Radar -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Subject Accuracy Balance</h3>
+                <span class="badge">Live Accuracy</span>
               </div>
-              <div class="radar-box">
-                <canvas id="miniRadarChart"></canvas>
+              <div class="chart-container-radar">
+                <canvas id="subjectRadarChart"></canvas>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 2: PROBLEM CALIBRATION (GRINDER) -->
-      <section id="view-grinder" class="tab-view">
-        <div class="dashboard-grid">
-          <!-- Grinder Matrix -->
-          <div class="panel">
-            <div class="panel-head">
+      <!-- TAB 2: QUESTION PRACTICE & PACE -->
+      <section id="view-practice" class="tab-pane">
+        <div class="two-column-grid">
+          <!-- Question Counters -->
+          <div class="card">
+            <div class="card-header">
               <div>
-                <h3>Problem Calibration Engine[cite: 1]</h3>
-                <p class="panel-desc">Empirical daily problem volume tracked against required quotas</p>
+                <h3>Daily Practice Counters</h3>
+                <p class="card-sub">Log solved questions to track target completion</p>
               </div>
             </div>
-            <div class="grinder-stack" id="grinderSubjectStack"></div>
+            <div class="counter-stack" id="subjectCountersContainer"></div>
           </div>
 
-          <!-- Speed & Pace Stopwatch -->
-          <div class="panel">
-            <div class="panel-head">
+          <!-- Pace Stopwatch -->
+          <div class="card">
+            <div class="card-header">
               <div>
                 <h3>Question Pace Stopwatch</h3>
-                <p class="panel-desc">Measure solve velocity per problem</p>
+                <p class="card-sub">Time your questions to build exam speed</p>
               </div>
-              <span class="badge" id="avgPaceBadge">Avg: -- min/Q</span>
+              <span class="badge" id="avgPaceText">Avg: -- min/Q</span>
             </div>
 
-            <div class="pace-clock-zone">
-              <div class="pace-digital" id="paceDigital">00:00</div>
-              <div class="pace-controls">
-                <select id="paceSubjectSelect">
+            <div class="stopwatch-box">
+              <div class="stopwatch-display" id="paceTimerDisplay">00:00</div>
+              <div class="stopwatch-controls">
+                <select id="paceSubject">
                   <option value="Physics">Physics</option>
                   <option value="Chemistry">Chemistry</option>
                   <option value="Mathematics">Mathematics</option>
                 </select>
-                <button class="btn btn-primary" id="btnPaceStart">Start Question</button>
+                <button class="btn btn-primary" id="btnPaceToggle">Start Question</button>
                 <button class="btn btn-success" id="btnPaceCorrect">✓ Solved Correct</button>
-                <button class="btn btn-danger" id="btnPaceIncorrect">✗ Error Logged</button>
+                <button class="btn btn-danger" id="btnPaceMistake">✗ Got Wrong</button>
               </div>
             </div>
 
-            <div class="pace-history-zone mt-4">
-              <span class="section-microhead">Recent Calibration Laps</span>
-              <div class="pace-laps-feed" id="paceLapsFeed"></div>
+            <div class="pace-laps-section">
+              <span class="section-title">Recent Solved Questions</span>
+              <div class="laps-list" id="paceLapsList">
+                <span class="empty-hint">No questions timed today.</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: ERROR CALIBRATION BOARD -->
-      <section id="view-errors" class="tab-view">
-        <div class="dashboard-grid">
-          <!-- Log Error Panel -->
-          <div class="panel">
-            <div class="panel-head">
-              <h3>Log Strategic Mistake</h3>
-              <span class="badge badge-warn" id="activeErrorsDue">0 Due for Review</span>
+      <!-- TAB 3: MISTAKE NOTEBOOK & SPACED REPETITION -->
+      <section id="view-mistakes" class="tab-pane">
+        <div class="two-column-grid">
+          <!-- Log Mistake Form -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Log a Mistake</h3>
+              <span class="badge badge-warn" id="dueReviewCount">0 Due for Review</span>
             </div>
-            <form id="errorEntryForm" class="form-vertical">
+            <form id="mistakeForm" class="vertical-form">
               <div class="form-row">
-                <input type="text" id="errChapter" placeholder="Chapter / Micro-concept (e.g. Rotational Inertia)" required>
+                <input type="text" id="errChapter" placeholder="Chapter / Topic (e.g. Rotational Motion)" required>
                 <select id="errSubject">
                   <option value="Physics">Physics</option>
                   <option value="Chemistry">Chemistry</option>
@@ -263,182 +247,172 @@
               </div>
               <div class="form-row">
                 <select id="errCategory">
-                  <option value="Conceptual Gap">Conceptual Breakdown</option>
-                  <option value="Calculation Slip">Calculation Slip</option>
-                  <option value="Constraint Misread">Misread Constraint</option>
-                  <option value="Time Trap">Time Management Trap</option>
+                  <option value="Conceptual Gap">Concept Misunderstanding</option>
+                  <option value="Calculation Error">Calculation Mistake</option>
+                  <option value="Misread Question">Misread Question / Constraint</option>
+                  <option value="Time Trap">Took Too Long (Time Trap)</option>
                 </select>
-                <input type="text" id="errTakeaway" placeholder="Core takeaway or root derivation fault" required>
+                <input type="text" id="errTakeaway" placeholder="What went wrong & what formula to remember" required>
               </div>
-              <button type="submit" class="btn btn-primary">Log to Spaced Repetition Board</button>
+              <button type="submit" class="btn btn-primary">Save to Notebook</button>
             </form>
           </div>
 
-          <!-- Socratic AI Formatter & Active Recall Action -->
-          <div class="panel flex-between-col">
+          <!-- Socratic AI Assistance -->
+          <div class="card socratic-card">
             <div>
-              <div class="panel-head">
-                <h3>Spaced Review & Socratic AI</h3>
+              <div class="card-header">
+                <h3>Socratic AI Tutor Helper</h3>
               </div>
-              <p class="panel-desc">Errors automatically schedule for review at <strong>Day 3, Day 7, and Day 21</strong> intervals. Generate high-density Socratic analysis prompts for any AI chatbot.</p>
+              <p class="card-sub">Every logged mistake has a one-click <strong>"Copy AI Prompt"</strong> button. Paste it into ChatGPT or Gemini to get a step-by-step diagnostic breakdown of where your logic failed.</p>
             </div>
-            <div class="action-card-callout">
-              <div class="callout-content">
-                <strong>Active Spaced Review Session</strong>
-                <span>Test yourself on pending errors with hidden solutions.</span>
-              </div>
-              <button class="btn btn-primary" id="btnLaunchReview">Review Pending</button>
+            <div class="callout-box">
+              <strong>Spaced Repetition Active</strong>
+              <p>Mistakes are resurfaced automatically on Day 3, Day 7, and Day 21 so you never repeat them.</p>
             </div>
           </div>
         </div>
 
-        <!-- Error Table -->
-        <div class="panel mt-4">
-          <div class="panel-head">
-            <h3>Active Spaced Repetition Error Register</h3>
+        <!-- Mistake Table -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3>Mistake Notebook</h3>
+            <span class="card-sub">Review regularly to plug syllabus leaks</span>
           </div>
-          <div class="table-responsive">
-            <table class="calibre-table">
+          <div class="table-container">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>Topic</th>
                   <th>Subject</th>
-                  <th>Classification</th>
-                  <th>Core Formula Takeaway</th>
-                  <th>Interval Stage</th>
+                  <th>Mistake Type</th>
+                  <th>Key Takeaway</th>
+                  <th>Review Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="errorRegisterTable"></tbody>
+              <tbody id="mistakeTableBody"></tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- TAB 4: MOCK ANALYTICS -->
-      <section id="view-mocks" class="tab-view">
-        <div class="dashboard-grid">
-          <!-- Log Mock Test -->
-          <div class="panel">
-            <div class="panel-head">
-              <h3>Log Full Mock Exam</h3>
+      <!-- TAB 4: MOCK TESTS & WEEKLY ANALYTICS -->
+      <section id="view-mocks" class="tab-pane">
+        <div class="two-column-grid">
+          <!-- Log Mock Form -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Log Mock Test Score</h3>
             </div>
-            <form id="mockInputForm" class="form-vertical">
+            <form id="mockForm" class="vertical-form">
               <div class="form-row">
-                <input type="text" id="mockNameInput" placeholder="Test Name (e.g. Major Test 03)" required>
-                <input type="date" id="mockDateInput" required>
+                <input type="text" id="mockName" placeholder="Test Name (e.g. Full Syllabus Mock 02)" required>
+                <input type="date" id="mockDate" required>
               </div>
               <div class="form-row">
-                <input type="number" id="mockPhyInput" placeholder="Physics Marks" required>
-                <input type="number" id="mockChemInput" placeholder="Chemistry Marks" required>
-                <input type="number" id="mockMathInput" placeholder="Math Marks" required>
+                <input type="number" id="mockPhy" placeholder="Physics Marks" required>
+                <input type="number" id="mockChem" placeholder="Chemistry Marks" required>
+                <input type="number" id="mockMath" placeholder="Math Marks" required>
               </div>
               <div class="form-row">
-                <input type="number" id="mockTotalInput" placeholder="Max Marks" value="300" required>
-                <input type="number" id="mockNegInput" placeholder="Negative Marks" value="0" required>
+                <input type="number" id="mockTotal" placeholder="Max Marks (e.g. 300)" value="300" required>
+                <input type="number" id="mockNegatives" placeholder="Negative Marks" value="0" required>
               </div>
-              <button type="submit" class="btn btn-primary">Log Mock Diagnostic</button>
+              <button type="submit" class="btn btn-primary">Save Mock Test</button>
             </form>
           </div>
 
-          <!-- Weekly Consistency Chart -->
-          <div class="panel">
-            <div class="panel-head">
+          <!-- Weekly Hours Chart -->
+          <div class="card">
+            <div class="card-header">
               <h3>Weekly Focus Volume</h3>
               <span class="badge">Last 7 Days</span>
             </div>
-            <div class="bar-chart-zone">
-              <canvas id="weeklyBarChart"></canvas>
+            <div class="chart-container-bar">
+              <canvas id="weeklyHoursChart"></canvas>
             </div>
           </div>
         </div>
 
-        <!-- Mock Log Table -->
-        <div class="panel mt-4">
-          <div class="panel-head">
-            <h3>Diagnostic Exam Performance Log</h3>
+        <!-- Mock Score History Table -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3>Mock Test History</h3>
           </div>
-          <div class="table-responsive">
-            <table class="calibre-table">
+          <div class="table-container">
+            <table class="data-table">
               <thead>
                 <tr>
-                  <th>Test Series</th>
+                  <th>Test Name</th>
                   <th>Date</th>
                   <th>Phy</th>
                   <th>Chem</th>
                   <th>Math</th>
-                  <th>Aggregate</th>
+                  <th>Total Score</th>
                   <th>Negatives</th>
                   <th>Accuracy</th>
                 </tr>
               </thead>
-              <tbody id="mockHistoryTable"></tbody>
+              <tbody id="mockTableBody"></tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- TAB 5: SYSTEM & BACKUP -->
-      <section id="view-settings" class="tab-view">
-        <div class="dashboard-grid">
-          <!-- Targets Configuration -->
-          <div class="panel">
-            <div class="panel-head">
-              <h3>Exam Milestones & Quotas</h3>
+      <!-- TAB 5: SETTINGS & BACKUP -->
+      <section id="view-settings" class="tab-pane">
+        <div class="two-column-grid">
+          <!-- Exam Targets Setup -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Exam Targets & Goals</h3>
             </div>
-            <div class="form-vertical">
+            <div class="vertical-form">
               <div class="form-group">
-                <label>Primary Exam Date</label>
+                <label>Target Exam Date:</label>
                 <input type="date" id="settingExamDate">
               </div>
               <div class="form-group">
-                <label>Target Question Quota</label>
-                <input type="number" id="settingTargetQuestions" value="3000">
+                <label>Total Question Goal (for entire prep):</label>
+                <input type="number" id="settingTotalGoal" value="3000">
               </div>
               <div class="form-group">
-                <label>Daily Problem Target / Subject</label>
-                <input type="number" id="settingDailySubjectTarget" value="20">
+                <label>Daily Questions Target (per subject):</label>
+                <input type="number" id="settingDailySubjectGoal" value="20">
               </div>
-              <button class="btn btn-primary" id="btnSaveConfig">Save Configuration</button>
+              <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
             </div>
           </div>
 
-          <!-- Export, Share & Backup -->
-          <div class="panel flex-between-col">
+          <!-- Backup & Daily Card Export -->
+          <div class="card socratic-card">
             <div>
-              <div class="panel-head">
-                <h3>Data Portability & Sharing</h3>
+              <div class="card-header">
+                <h3>Save Data & Export</h3>
               </div>
-              <p class="panel-desc">All data persists locally in your browser. Generate an offline JSON backup or export a daily visual report card.</p>
+              <p class="card-sub">Your data is stored completely offline in your browser. Download a backup file regularly to ensure you never lose your records.</p>
               
-              <div class="backup-actions-stack mt-4">
-                <div class="button-group">
-                  <button class="btn btn-secondary" id="btnExportJSON">Download JSON Backup</button>
-                  <label class="btn btn-secondary btn-upload">
-                    Import JSON <input type="file" id="importFileInput" accept=".json" style="display: none;">
-                  </label>
-                </div>
-                <button class="btn btn-primary mt-2" id="btnGenerateReport">📥 Generate Daily Report Card</button>
+              <div class="backup-buttons mt-4">
+                <button class="btn btn-secondary" id="btnExportJSON">Download JSON Backup</button>
+                <label class="btn btn-secondary upload-btn">
+                  Import Backup <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </label>
               </div>
             </div>
 
-            <div class="version-tag">
-              <span>Calibre OS Pro Architecture — Build v5.0.0</span>
-            </div>
+            <button class="btn btn-primary mt-4" id="btnExportDailyCard">
+              📥 Generate & Download Daily Summary Card
+            </button>
           </div>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- Offscreen Share Report Canvas -->
-  <canvas id="shareReportCanvas" width="1080" height="1080" style="display: none;"></canvas>
+  <!-- Offscreen Canvas for Summary Card Image -->
+  <canvas id="dailyCardCanvas" width="1080" height="1080" style="display: none;"></canvas>
 
-  <script src="app.js?v=5.0"></script>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#080c14">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Calibre OS">
+  <script src="app.js"></script>
 </body>
 </html>
