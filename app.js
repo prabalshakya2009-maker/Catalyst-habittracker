@@ -35,7 +35,12 @@ const defaultState = {
   ]
 };
 
-let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState;
+let appState;
+try {
+  appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState;
+} catch (e) {
+  appState = defaultState;
+}
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -61,6 +66,11 @@ document.querySelectorAll(".nav-link").forEach(btn => {
     btn.classList.add("active");
     const target = document.getElementById(`view-${btn.dataset.tab}`);
     if (target) target.classList.add("active");
+
+    const mobileIndicator = document.getElementById("mobileTabIndicator");
+    if (mobileIndicator && btn.dataset.label) {
+      mobileIndicator.textContent = btn.dataset.label;
+    }
 
     if (btn.dataset.tab === "dashboard" || btn.dataset.tab === "mocks") {
       updateCharts();
@@ -127,9 +137,9 @@ function startBrownNoise() {
 }
 
 function stopAudio() {
-  if (oscL) { oscL.stop(); oscL = null; }
-  if (oscR) { oscR.stop(); oscR = null; }
-  if (noiseNode) { noiseNode.stop(); noiseNode = null; }
+  if (oscL) { try { oscL.stop(); } catch(e){} oscL = null; }
+  if (oscR) { try { oscR.stop(); } catch(e){} oscR = null; }
+  if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
   setAudioButton(false);
 }
 
@@ -571,7 +581,6 @@ function updateCharts() {
 
 // --- RENDER DOM ELEMENTS ---
 function renderAll() {
-  // Ribbon Stats
   document.getElementById("topStreak").textContent = `${appState.streak} ${appState.streak === 1 ? 'Day' : 'Days'}`;
   document.getElementById("topFocusTime").textContent = `${(appState.focusMinutesToday / 60).toFixed(1)}h`;
   document.getElementById("topRankPrediction").textContent = predictRankFromMocks();
@@ -583,30 +592,27 @@ function renderAll() {
   const pace = (remaining / diffDays).toFixed(1);
   document.getElementById("topPaceRequired").textContent = `${pace} Qs/day required`;
 
-  // Settings
   document.getElementById("settingExamDate").value = appState.targetExamDate;
   document.getElementById("settingTotalGoal").value = appState.totalQuestionGoal;
   document.getElementById("settingDailySubjectGoal").value = appState.dailySubjectGoal;
 
-  // Directives / Tasks
   const doneTasks = appState.tasks.filter(t => t.done).length;
   document.getElementById("taskDoneCounter").textContent = `${doneTasks}/${appState.tasks.length} Done`;
 
   ["Morning", "Afternoon", "Evening"].forEach(slot => {
     const container = document.getElementById(`tasksList${slot}`);
     const items = appState.tasks.filter(t => t.slot === slot);
-    container.innerHTML = items.length === 0 ? `<span class="empty-hint">No ${slot.toLowerCase()} targets.</span>` : items.map(t => `
-      <div class="task-item ${t.done ? 'done' : ''}">
+    container.innerHTML = items.length === 0 ? `<span class="empty-hint">No ${slot.toLowerCase()} targets.</span>` : items.map(d => `
+      <div class="task-item ${d.done ? 'done' : ''}">
         <div class="task-left">
-          <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTask(${t.id})">
-          <span>${t.text}</span>
+          <input type="checkbox" ${d.done ? 'checked' : ''} onclick="toggleTask(${d.id})">
+          <span>${d.text}</span>
         </div>
-        <button class="btn btn-tiny" style="background:none;color:#64748b;" onclick="deleteTask(${t.id})">✕</button>
+        <button class="btn btn-tiny" style="background:none;color:#64748b;" onclick="deleteTask(${d.id})">✕</button>
       </div>
     `).join("");
   });
 
-  // Question Counters
   const counterContainer = document.getElementById("subjectCountersContainer");
   counterContainer.innerHTML = Object.keys(appState.subjects).map(subKey => {
     const sub = appState.subjects[subKey];
@@ -628,7 +634,6 @@ function renderAll() {
     `;
   }).join("");
 
-  // Pace Stopwatch Laps
   const avgPace = appState.paceLogs.length > 0 
     ? (appState.paceLogs.reduce((a, b) => a + b.timeSec, 0) / appState.paceLogs.length / 60).toFixed(1)
     : "--";
@@ -640,7 +645,6 @@ function renderAll() {
     </div>
   `).join("") || `<span class="empty-hint">No questions timed today.</span>`;
 
-  // Mistake Notebook Table
   const now = new Date();
   const dueMistakes = appState.mistakes.filter(m => Math.floor((now - new Date(m.date)) / 86400000) >= (m.stage || 3));
   document.getElementById("dueReviewCount").textContent = `${dueMistakes.length} Due for Review`;
@@ -659,7 +663,6 @@ function renderAll() {
     </tr>
   `).join("") || `<tr><td colspan="6" style="text-align:center;color:#64748b;">No mistakes logged yet.</td></tr>`;
 
-  // Mock Table
   document.getElementById("mockTableBody").innerHTML = appState.mocks.map(m => `
     <tr>
       <td><strong>${m.name}</strong></td>
@@ -673,7 +676,6 @@ function renderAll() {
     </tr>
   `).join("") || `<tr><td colspan="8" style="text-align:center;color:#64748b;">No mock tests logged yet.</td></tr>`;
 
-  // Completed Session Chips
   document.getElementById("completedBlocksList").innerHTML = appState.completedBlocks.map(b => `<span class="chip">${b}</span>`).join("") || `<span class="empty-hint">No focus blocks completed today.</span>`;
 }
 

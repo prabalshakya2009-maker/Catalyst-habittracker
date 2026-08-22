@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calibre — Student Focus & Study Workspace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Calibre — Precision Study Workspace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -12,11 +12,20 @@
 </head>
 <body>
   <div class="workspace">
-    <!-- Sidebar Navigation -->
+    <!-- Top Bar on Mobile Screens -->
+    <header class="mobile-top-bar">
+      <div class="mobile-brand">
+        <span class="brand-dot"></span>
+        <span class="brand-title">CALIBRE</span>
+      </div>
+      <span class="badge" id="mobileTabIndicator">Focus</span>
+    </header>
+
+    <!-- Sidebar (Desktop) / Bottom Navigation (Mobile) -->
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/>
             <circle cx="12" cy="12" r="4"/>
             <line x1="12" y1="2" x2="12" y2="6"/>
@@ -29,30 +38,30 @@
       </div>
 
       <nav class="nav-menu">
-        <button class="nav-link active" data-tab="dashboard">
+        <button class="nav-link active" data-tab="dashboard" data-label="Focus">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-          Dashboard
+          <span>Focus</span>
         </button>
-        <button class="nav-link" data-tab="practice">
+        <button class="nav-link" data-tab="practice" data-label="Practice">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Question Tracker
+          <span>Practice</span>
         </button>
-        <button class="nav-link" data-tab="mistakes">
+        <button class="nav-link" data-tab="mistakes" data-label="Mistakes">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Mistake Notebook
+          <span>Mistakes</span>
         </button>
-        <button class="nav-link" data-tab="mocks">
+        <button class="nav-link" data-tab="mocks" data-label="Mocks">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Mock Test Analytics
+          <span>Mocks</span>
         </button>
-        <button class="nav-link" data-tab="settings">
+        <button class="nav-link" data-tab="settings" data-label="Settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          Settings & Backup
+          <span>Settings</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
-        <span class="footer-label">Status: All Data Saved Locally</span>
+        <span>Offline Data Synced</span>
       </div>
     </aside>
 
@@ -63,29 +72,29 @@
         <div class="stat-box">
           <span class="stat-label">Daily Streak</span>
           <span class="stat-value" id="topStreak">1 Day</span>
-          <span class="stat-sub" id="topStreakStatus">Consistency on track</span>
+          <span class="stat-sub">Active continuous</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Study Time Today</span>
           <span class="stat-value" id="topFocusTime">0.0h</span>
-          <span class="stat-sub">Goal: 5.0h daily</span>
+          <span class="stat-sub">Daily Goal: 5.0h</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Exam Countdown</span>
           <span class="stat-value" id="topCountdown">-- Days</span>
-          <span class="stat-sub" id="topPaceRequired">Required pace calculating...</span>
+          <span class="stat-sub" id="topPaceRequired">Required pace</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Target Rank (AIR)</span>
+          <span class="stat-label">Target Rank</span>
           <span class="stat-value accent" id="topRankPrediction">Top 5,000</span>
-          <span class="stat-sub">Based on logged mocks</span>
+          <span class="stat-sub">From mock data</span>
         </div>
       </header>
 
-      <!-- TAB 1: DASHBOARD -->
+      <!-- TAB 1: FOCUS & DASHBOARD -->
       <section id="view-dashboard" class="tab-pane active">
         <div class="two-column-grid">
-          <!-- Left: Integrated Focus Timer -->
+          <!-- Left: Focus Timer -->
           <div class="card timer-card">
             <div class="card-header">
               <h3>Focus Session</h3>
@@ -102,14 +111,14 @@
               <span class="timer-tag" id="timerTag">Deep Focus Block</span>
             </div>
 
-            <!-- Built-in Ambient Audio Controls -->
+            <!-- Integrated Ambient Audio -->
             <div class="timer-audio-bar">
-              <span class="audio-title">🎧 Background Audio:</span>
+              <span class="audio-title">🎧 Audio:</span>
               <select id="audioSelect">
                 <option value="none">Off (Silence)</option>
                 <option value="gamma">40 Hz Gamma Focus</option>
                 <option value="alpha">10 Hz Alpha Memory</option>
-                <option value="brown">Brownian Noise</option>
+                <option value="brown">Brownian Flow Noise</option>
               </select>
               <button class="btn btn-secondary btn-small" id="btnAudioToggle">Play</button>
             </div>
@@ -127,9 +136,9 @@
             </div>
           </div>
 
-          <!-- Right Column: Today's Tasks & Subject Mastery -->
+          <!-- Right: Tasks & Subject Accuracy -->
           <div class="right-column-stack">
-            <!-- Today's Study Tasks -->
+            <!-- Daily Directives -->
             <div class="card">
               <div class="card-header">
                 <div>
@@ -140,7 +149,7 @@
               </div>
 
               <form id="todoForm" class="todo-form">
-                <input type="text" id="todoInput" placeholder="What will you study next? (e.g. 15 Thermodynamics Qs)" required>
+                <input type="text" id="todoInput" placeholder="Add target (e.g. 15 Thermodynamics Qs)..." required>
                 <select id="todoSlot">
                   <option value="Morning">Morning</option>
                   <option value="Afternoon">Afternoon</option>
@@ -165,7 +174,7 @@
               </div>
             </div>
 
-            <!-- Subject Mastery Radar -->
+            <!-- Accuracy Radar -->
             <div class="card">
               <div class="card-header">
                 <h3>Subject Accuracy Balance</h3>
@@ -186,8 +195,8 @@
           <div class="card">
             <div class="card-header">
               <div>
-                <h3>Daily Practice Counters</h3>
-                <p class="card-sub">Log solved questions to track target completion</p>
+                <h3>Daily Question Quotas</h3>
+                <p class="card-sub">Log solved questions to track target progress</p>
               </div>
             </div>
             <div class="counter-stack" id="subjectCountersContainer"></div>
@@ -198,7 +207,7 @@
             <div class="card-header">
               <div>
                 <h3>Question Pace Stopwatch</h3>
-                <p class="card-sub">Time your questions to build exam speed</p>
+                <p class="card-sub">Time your speed per problem</p>
               </div>
               <span class="badge" id="avgPaceText">Avg: -- min/Q</span>
             </div>
@@ -227,10 +236,9 @@
         </div>
       </section>
 
-      <!-- TAB 3: MISTAKE NOTEBOOK & SPACED REPETITION -->
+      <!-- TAB 3: MISTAKE NOTEBOOK -->
       <section id="view-mistakes" class="tab-pane">
         <div class="two-column-grid">
-          <!-- Log Mistake Form -->
           <div class="card">
             <div class="card-header">
               <h3>Log a Mistake</h3>
@@ -247,18 +255,17 @@
               </div>
               <div class="form-row">
                 <select id="errCategory">
-                  <option value="Conceptual Gap">Concept Misunderstanding</option>
-                  <option value="Calculation Error">Calculation Mistake</option>
-                  <option value="Misread Question">Misread Question / Constraint</option>
-                  <option value="Time Trap">Took Too Long (Time Trap)</option>
+                  <option value="Concept Misunderstanding">Concept Misunderstanding</option>
+                  <option value="Calculation Mistake">Calculation Mistake</option>
+                  <option value="Misread Constraint">Misread Constraint</option>
+                  <option value="Time Trap">Time Trap</option>
                 </select>
-                <input type="text" id="errTakeaway" placeholder="What went wrong & what formula to remember" required>
+                <input type="text" id="errTakeaway" placeholder="What went wrong & key formula takeaway" required>
               </div>
               <button type="submit" class="btn btn-primary">Save to Notebook</button>
             </form>
           </div>
 
-          <!-- Socratic AI Assistance -->
           <div class="card socratic-card">
             <div>
               <div class="card-header">
@@ -268,16 +275,15 @@
             </div>
             <div class="callout-box">
               <strong>Spaced Repetition Active</strong>
-              <p>Mistakes are resurfaced automatically on Day 3, Day 7, and Day 21 so you never repeat them.</p>
+              <p>Mistakes are resurfaced automatically on Day 3, Day 7, and Day 21.</p>
             </div>
           </div>
         </div>
 
-        <!-- Mistake Table -->
         <div class="card mt-4">
           <div class="card-header">
             <h3>Mistake Notebook</h3>
-            <span class="card-sub">Review regularly to plug syllabus leaks</span>
+            <span class="card-sub">Review regularly to prevent recurring errors</span>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -297,17 +303,16 @@
         </div>
       </section>
 
-      <!-- TAB 4: MOCK TESTS & WEEKLY ANALYTICS -->
+      <!-- TAB 4: MOCK TESTS & ANALYTICS -->
       <section id="view-mocks" class="tab-pane">
         <div class="two-column-grid">
-          <!-- Log Mock Form -->
           <div class="card">
             <div class="card-header">
               <h3>Log Mock Test Score</h3>
             </div>
             <form id="mockForm" class="vertical-form">
               <div class="form-row">
-                <input type="text" id="mockName" placeholder="Test Name (e.g. Full Syllabus Mock 02)" required>
+                <input type="text" id="mockName" placeholder="Test Name (e.g. Major Test 02)" required>
                 <input type="date" id="mockDate" required>
               </div>
               <div class="form-row">
@@ -323,7 +328,6 @@
             </form>
           </div>
 
-          <!-- Weekly Hours Chart -->
           <div class="card">
             <div class="card-header">
               <h3>Weekly Focus Volume</h3>
@@ -335,7 +339,6 @@
           </div>
         </div>
 
-        <!-- Mock Score History Table -->
         <div class="card mt-4">
           <div class="card-header">
             <h3>Mock Test History</h3>
@@ -363,7 +366,6 @@
       <!-- TAB 5: SETTINGS & BACKUP -->
       <section id="view-settings" class="tab-pane">
         <div class="two-column-grid">
-          <!-- Exam Targets Setup -->
           <div class="card">
             <div class="card-header">
               <h3>Exam Targets & Goals</h3>
@@ -385,7 +387,6 @@
             </div>
           </div>
 
-          <!-- Backup & Daily Card Export -->
           <div class="card socratic-card">
             <div>
               <div class="card-header">
@@ -410,9 +411,7 @@
     </main>
   </div>
 
-  <!-- Offscreen Canvas for Summary Card Image -->
   <canvas id="dailyCardCanvas" width="1080" height="1080" style="display: none;"></canvas>
-
   <script src="app.js"></script>
 </body>
 </html>
