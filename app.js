@@ -1,33 +1,5 @@
-const STORAGE_KEY = "CALIBRE_OS_STATE_V3";
-const GIST_CREDENTIALS_KEY = "CALIBRE_GIST_CREDENTIALS";
-const ONBOARDING_KEY = "CALIBRE_ONBOARDED_V1";
+const STORAGE_KEY = "CALIBRE_OS_STATE_V4";
 
-// The GitHub token + Gist ID live in their own local-only storage key,
-// completely separate from appState. This guarantees they can never end up
-// inside an exported JSON backup or inside the state blob pushed to a Gist.
-function loadGistCredentials() {
-  try {
-    return JSON.parse(localStorage.getItem(GIST_CREDENTIALS_KEY)) || { token: "", gistId: "" };
-  } catch {
-    return { token: "", gistId: "" };
-  }
-}
-
-function saveGistCredentials(token, gistId) {
-  localStorage.setItem(GIST_CREDENTIALS_KEY, JSON.stringify({ token, gistId }));
-}
-
-// Strips a legacy token/gistId out of any state object that might still carry
-// them (old exports, old Gist pulls, or a browser that never migrated).
-function stripLegacyCredentials(obj) {
-  if (obj && (obj.gistToken || obj.gistId)) {
-    delete obj.gistToken;
-    delete obj.gistId;
-  }
-  return obj;
-}
-
-// Initial syllabus matrix chapters with 3-tier tracking
 const defaultSyllabus = {
   Physics: [
     { name: "Kinematics & Vectors", t: true, p: true, r: false },
@@ -71,14 +43,21 @@ const initialState = {
   streak: 1,
   lastActiveDate: new Date().toISOString().split("T")[0],
   focusMinutesToday: 0,
-  examTargetDate: "2027-01-20",
+  hourlyFocus: Array(24).fill(0),
+  historicalDailyAvgFocus: 240, // 4.0h baseline
+  historicalDailyAvgQuestions: 35,
   totalExamProblemTarget: 3000,
   dailyQuestionTarget: 20,
   completedSessions: [],
+  milestones: [
+    { id: 1, name: "JEE Main Session 1", date: "2027-01-20" },
+    { id: 2, name: "Board Examinations", date: "2027-02-15" },
+    { id: 3, name: "JEE Advanced", date: "2027-05-25" }
+  ],
   subjects: {
-    Physics: { solved: 14, target: 20, correct: 12 },
-    Chemistry: { solved: 18, target: 20, correct: 16 },
-    Mathematics: { solved: 10, target: 20, correct: 7 }
+    Physics: { solved: 14, target: 20, correct: 12, tiers: { Foundation: 4, Main: 8, Advanced: 2 } },
+    Chemistry: { solved: 18, target: 20, correct: 16, tiers: { Foundation: 6, Main: 10, Advanced: 2 } },
+    Mathematics: { solved: 10, target: 20, correct: 7, tiers: { Foundation: 2, Main: 6, Advanced: 2 } }
   },
   directives: [
     { id: 1, text: "Solve 15 Definite Integration PyQs", slot: "Morning", done: false },
@@ -90,44 +69,59 @@ const initialState = {
       topic: "Rotational Inertia / Parallel Axis Theorem",
       subject: "Physics",
       type: "Conceptual Gap",
-      note: "I_cm must always be through the exact Center of Mass before shifting by Md^2.",
+      note: "I_cm must always be through the center of mass before shifting by Md^2.",
       date: new Date(Date.now() - 4 * 86400000).toISOString().split("T")[0],
       stage: 3
+    }
+  ],
+  formulas: [
+    {
+      id: 1,
+      title: "Biot-Savart Law",
+      subject: "Physics",
+      latex: "d\\vec{B} = \\frac{\\mu_0}{4\\pi} \\frac{I (d\\vec{l} \\times \\hat{r})}{r^2}",
+      notes: "Applies exclusively to steady line currents in free space."
+    },
+    {
+      id: 2,
+      title: "Arrhenius Activation Energy",
+      subject: "Chemistry",
+      latex: "k = A e^{-\\frac{E_a}{RT}} \\implies \\ln k = \\ln A - \\frac{E_a}{RT}",
+      notes: "Slope of ln(k) vs 1/T represents -Ea/R."
+    },
+    {
+      id: 3,
+      title: "Leibniz Integral Rule",
+      subject: "Mathematics",
+      latex: "\\frac{d}{dx} \\int_{u(x)}^{v(x)} f(t) dt = f(v(x))v'(x) - f(u(x))u'(x)",
+      notes: "Essential for differentiating variable-limit definite integrals."
     }
   ],
   syllabus: defaultSyllabus,
   mocks: [],
   paceRecords: [],
-  frictionLogs: []
+  frictionLogs: [],
+  eveningLogs: [],
+  gistToken: "",
+  gistId: ""
 };
 
 let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialState;
-
-// One-time migration: earlier versions stored the GitHub token inside appState,
-// which meant it could leak into JSON backups and Gist pushes. Move it out to
-// dedicated storage so existing users keep their saved token, safely.
-if (appState.gistToken || appState.gistId) {
-  const existing = loadGistCredentials();
-  saveGistCredentials(appState.gistToken || existing.token, appState.gistId || existing.gistId);
-  delete appState.gistToken;
-  delete appState.gistId;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-}
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
   renderAll();
 }
 
-// Register PWA Service Worker
+// Service Worker Setup
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
-// --- TAB ROUTING ---
-document.querySelectorAll(".nav-btn[data-tab]").forEach(btn => {
+// --- NAVIGATION ---
+document.querySelectorAll(".nav-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".nav-btn[data-tab]").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
 
     btn.classList.add("active");
@@ -135,32 +129,47 @@ document.querySelectorAll(".nav-btn[data-tab]").forEach(btn => {
     if (target) target.classList.add("active");
 
     if (btn.dataset.tab === "analytics") updateCharts();
+    if (btn.dataset.tab === "formulas") renderFormulas();
   });
 });
 
-// --- ONBOARDING TOUR ---
-function maybeShowOnboarding() {
-  if (!localStorage.getItem(ONBOARDING_KEY)) {
-    document.getElementById("onboardingModal").classList.add("active");
-  }
+// --- BINAURAL & AUDIO SYNTHESIZER ---
+let audioCtx = null;
+let noiseSource = null;
+let binauralOscLeft = null;
+let binauralOscRight = null;
+let isAudioActive = false;
+
+function startBinauralBeats(freqDiff) {
+  stopAllAudio();
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  const baseFreq = 220; // A3 base carrier
+  binauralOscLeft = audioCtx.createOscillator();
+  binauralOscRight = audioCtx.createOscillator();
+
+  binauralOscLeft.frequency.value = baseFreq;
+  binauralOscRight.frequency.value = baseFreq + freqDiff;
+
+  const merger = audioCtx.createChannelMerger(2);
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.08;
+
+  binauralOscLeft.connect(merger, 0, 0); // Left ear
+  binauralOscRight.connect(merger, 0, 1); // Right ear
+
+  merger.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  binauralOscLeft.start();
+  binauralOscRight.start();
+  isAudioActive = true;
+  document.getElementById("btnToggleNoise").textContent = "Stop";
 }
 
-document.getElementById("btnCloseOnboarding").addEventListener("click", () => {
-  localStorage.setItem(ONBOARDING_KEY, "1");
-  document.getElementById("onboardingModal").classList.remove("active");
-});
-
-document.getElementById("btnShowTour").addEventListener("click", () => {
-  document.getElementById("onboardingModal").classList.add("active");
-});
-
-// --- AMBIENT AUDIO SYNTHESIZER ---
-let audioCtx = null;
-let noiseNode = null;
-let isAudioPlaying = false;
-
-function createNoiseBuffer(type) {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function startNoiseBuffer(type) {
+  stopAllAudio();
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const bufferSize = audioCtx.sampleRate * 2;
   const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
   const data = buffer.getChannelData(0);
@@ -178,49 +187,67 @@ function createNoiseBuffer(type) {
       data[i] *= 2.0;
     }
   }
-  return buffer;
-}
 
-function startAudioNoise() {
-  const type = document.getElementById("audioNoiseType").value;
-  if (type === "none") return stopAudioNoise();
-
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (noiseNode) noiseNode.stop();
-
-  noiseNode = audioCtx.createBufferSource();
-  noiseNode.buffer = createNoiseBuffer(type);
-  noiseNode.loop = true;
-
+  noiseSource = audioCtx.createBufferSource();
+  noiseSource.buffer = buffer;
+  noiseSource.loop = true;
   const gain = audioCtx.createGain();
-  gain.gain.value = 0.15;
-  noiseNode.connect(gain);
+  gain.gain.value = 0.12;
+  noiseSource.connect(gain);
   gain.connect(audioCtx.destination);
 
-  noiseNode.start();
-  isAudioPlaying = true;
+  noiseSource.start();
+  isAudioActive = true;
   document.getElementById("btnToggleNoise").textContent = "Stop";
 }
 
-function stopAudioNoise() {
-  if (noiseNode) {
-    noiseNode.stop();
-    noiseNode = null;
-  }
-  isAudioPlaying = false;
+function stopAllAudio() {
+  if (binauralOscLeft) { binauralOscLeft.stop(); binauralOscLeft = null; }
+  if (binauralOscRight) { binauralOscRight.stop(); binauralOscRight = null; }
+  if (noiseSource) { noiseSource.stop(); noiseSource = null; }
+  isAudioActive = false;
   document.getElementById("btnToggleNoise").textContent = "Play";
 }
 
 document.getElementById("btnToggleNoise").addEventListener("click", () => {
-  if (isAudioPlaying) stopAudioNoise();
-  else startAudioNoise();
+  if (isAudioActive) {
+    stopAllAudio();
+  } else {
+    const mode = document.getElementById("audioNoiseType").value;
+    if (mode === "gamma") startBinauralBeats(40);
+    else if (mode === "alpha") startBinauralBeats(10);
+    else if (mode === "brown" || mode === "pink") startNoiseBuffer(mode);
+  }
 });
 
-document.getElementById("audioNoiseType").addEventListener("change", () => {
-  if (isAudioPlaying) startAudioNoise();
+document.getElementById("audioNoiseType").addEventListener("change", (e) => {
+  if (isAudioActive) {
+    if (e.target.value === "gamma") startBinauralBeats(40);
+    else if (e.target.value === "alpha") startBinauralBeats(10);
+    else if (e.target.value === "brown" || e.target.value === "pink") startNoiseBuffer(e.target.value);
+    else stopAllAudio();
+  }
 });
 
-// --- DEEP WORK TIMER & FRICTION LOGGING ---
+// --- KIOSK MODE & PAGE VISIBILITY LOCK ---
+let isKioskActive = false;
+document.getElementById("toggleKioskMode").addEventListener("change", (e) => {
+  isKioskActive = e.target.checked;
+  if (isKioskActive && !document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && isTimerActive && isKioskActive) {
+    clearInterval(timerInterval);
+    isTimerActive = false;
+    btnTimerToggle.textContent = "Resume Session";
+    document.getElementById("frictionModal").classList.add("active");
+  }
+});
+
+// --- DEEP WORK TIMER ---
 let timerInterval = null;
 let timerSeconds = 50 * 60;
 let isTimerActive = false;
@@ -245,7 +272,6 @@ timerPreset.addEventListener("change", (e) => {
 
 btnTimerToggle.addEventListener("click", () => {
   if (isTimerActive) {
-    // Pausing session: Open Friction Prompt
     clearInterval(timerInterval);
     btnTimerToggle.textContent = "Resume Session";
     isTimerActive = false;
@@ -262,6 +288,10 @@ btnTimerToggle.addEventListener("click", () => {
         isTimerActive = false;
         const mins = parseInt(timerPreset.value);
         appState.focusMinutesToday += mins;
+        
+        const hourNow = new Date().getHours();
+        appState.hourlyFocus[hourNow] = (appState.hourlyFocus[hourNow] || 0) + mins;
+
         appState.completedSessions.push(`${mins}m Monotask Block`);
         btnTimerToggle.textContent = "Start Session";
         timerSeconds = mins * 60;
@@ -282,15 +312,12 @@ btnTimerReset.addEventListener("click", () => {
 });
 
 function logFrictionAndClose(reason) {
-  appState.frictionLogs.push({
-    timestamp: new Date().toISOString(),
-    reason
-  });
+  appState.frictionLogs.push({ timestamp: new Date().toISOString(), reason });
   document.getElementById("frictionModal").classList.remove("active");
   saveState();
 }
 
-// --- QUESTION PACE STOPWATCH ---
+// --- STOPWATCH & TIERED DIFFICULTY LOGGING ---
 let paceInterval = null;
 let paceSeconds = 0;
 let isPaceRunning = false;
@@ -321,8 +348,11 @@ function logPaceResult(isCorrect) {
   btnPaceToggle.textContent = "Start Question";
 
   const subject = document.getElementById("paceSubject").value;
+  const difficulty = document.getElementById("paceDifficulty").value;
+
   appState.paceRecords.unshift({
     subject,
+    difficulty,
     timeSecs: paceSeconds,
     correct: isCorrect,
     date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -331,6 +361,8 @@ function logPaceResult(isCorrect) {
   if (appState.subjects[subject]) {
     appState.subjects[subject].solved += 1;
     if (isCorrect) appState.subjects[subject].correct += 1;
+    if (!appState.subjects[subject].tiers) appState.subjects[subject].tiers = { Foundation: 0, Main: 0, Advanced: 0 };
+    appState.subjects[subject].tiers[difficulty] = (appState.subjects[subject].tiers[difficulty] || 0) + 1;
   }
 
   paceSeconds = 0;
@@ -340,6 +372,180 @@ function logPaceResult(isCorrect) {
 
 document.getElementById("btnPaceLapCorrect").addEventListener("click", () => logPaceResult(true));
 document.getElementById("btnPaceLapWrong").addEventListener("click", () => logPaceResult(false));
+
+function quickAddTieredQuestion(subject, tier) {
+  if (appState.subjects[subject]) {
+    appState.subjects[subject].solved += 1;
+    appState.subjects[subject].correct += 1;
+    if (!appState.subjects[subject].tiers) appState.subjects[subject].tiers = { Foundation: 0, Main: 0, Advanced: 0 };
+    appState.subjects[subject].tiers[tier] = (appState.subjects[subject].tiers[tier] || 0) + 1;
+    saveState();
+  }
+}
+
+// --- SOCRATIC AI PROMPT FORMATTER ---
+function copySocraticPrompt(errId) {
+  const err = appState.errors.find(e => e.id === errId);
+  if (!err) return;
+
+  const prompt = `I made an analytical error during a problem-solving session in ${err.subject}.
+- Specific Topic: ${err.topic}
+- Classification: ${err.type}
+- My Reflection Note: "${err.note}"
+
+Act as an elite Socratic academic tutor. Do not give the direct answer immediately:
+1. Ask 2 progressive diagnostic questions to uncover the exact breakdown in my first-principles derivation.
+2. Provide a rigorous, conceptual breakdown of the underlying physical/mathematical law.
+3. Supply 1 harder variation problem with an edge case constraint to verify my understanding.`;
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    alert("Socratic AI Prompt copied to clipboard! Paste into your AI chat.");
+  });
+}
+
+// --- FORMULA VAULT (LATEX + SEARCH) ---
+function renderFormulas() {
+  const container = document.getElementById("formulaGridContainer");
+  const search = document.getElementById("formulaSearchInput").value.toLowerCase();
+  const filterSub = document.getElementById("formulaSubjectFilter").value;
+
+  const filtered = appState.formulas.filter(f => {
+    const matchSub = filterSub === "all" || f.subject === filterSub;
+    const matchSearch = f.title.toLowerCase().includes(search) || f.notes.toLowerCase().includes(search);
+    return matchSub && matchSearch;
+  });
+
+  container.innerHTML = filtered.map(f => `
+    <div class="formula-card">
+      <div class="formula-card-header">
+        <strong>${f.title}</strong>
+        <span class="badge">${f.subject}</span>
+      </div>
+      <div class="formula-latex-render" id="latex-box-${f.id}"></div>
+      <div class="text-muted" style="font-size:0.8rem;">${f.notes}</div>
+    </div>
+  `).join("") || `<span class="empty-hint">No formulas match your query.</span>`;
+
+  filtered.forEach(f => {
+    const el = document.getElementById(`latex-box-${f.id}`);
+    if (el && window.katex) {
+      katex.render(f.latex, el, { throwOnError: false, displayMode: true });
+    }
+  });
+}
+
+document.getElementById("formulaSearchInput").addEventListener("input", renderFormulas);
+document.getElementById("formulaSubjectFilter").addEventListener("change", renderFormulas);
+
+document.getElementById("btnOpenFormulaModal").addEventListener("click", () => {
+  document.getElementById("formulaModal").classList.add("active");
+});
+
+function closeFormulaModal() {
+  document.getElementById("formulaModal").classList.remove("active");
+}
+
+document.getElementById("addFormulaForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const title = document.getElementById("formFormulaTitle").value.trim();
+  const subject = document.getElementById("formFormulaSubject").value;
+  const latex = document.getElementById("formFormulaLatex").value.trim();
+  const notes = document.getElementById("formFormulaNotes").value.trim();
+
+  appState.formulas.push({ id: Date.now(), title, subject, latex, notes });
+  e.target.reset();
+  closeFormulaModal();
+  saveState();
+  renderFormulas();
+});
+
+// --- GUIDED EVENING SHUTDOWN RITUAL ---
+document.getElementById("btnTriggerShutdown").addEventListener("click", () => {
+  document.getElementById("shutdownModal").classList.add("active");
+});
+
+function closeShutdownModal() {
+  document.getElementById("shutdownModal").classList.remove("active");
+}
+
+document.getElementById("shutdownFatigue").addEventListener("input", (e) => {
+  document.getElementById("shutdownFatigueVal").textContent = `${e.target.value} / 5 Rating`;
+});
+
+document.getElementById("btnCompleteShutdown").addEventListener("click", () => {
+  const fatigue = document.getElementById("shutdownFatigue").value;
+  const t1 = document.getElementById("tomorrowTask1").value.trim();
+  const t2 = document.getElementById("tomorrowTask2").value.trim();
+  const t3 = document.getElementById("tomorrowTask3").value.trim();
+
+  if (t1) appState.directives.push({ id: Date.now(), text: t1, slot: "Morning", done: false });
+  if (t2) appState.directives.push({ id: Date.now() + 1, text: t2, slot: "Afternoon", done: false });
+  if (t3) appState.directives.push({ id: Date.now() + 2, text: t3, slot: "Evening", done: false });
+
+  appState.eveningLogs.unshift({
+    date: new Date().toISOString().split("T")[0],
+    fatigueScore: fatigue,
+    tasksPlanned: [t1, t2, t3].filter(Boolean)
+  });
+
+  closeShutdownModal();
+  saveState();
+  alert("Evening Shutdown Complete. Directives staged for tomorrow.");
+});
+
+// --- CSV BATCH IMPORTER ---
+document.getElementById("csvFileInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const lines = event.target.result.split("\n");
+    let importedErrors = 0;
+    lines.forEach(line => {
+      const parts = line.split(",");
+      if (parts.length >= 4) {
+        appState.errors.unshift({
+          id: Date.now() + Math.random(),
+          topic: parts[0].trim(),
+          subject: parts[1].trim(),
+          type: parts[2].trim(),
+          note: parts[3].trim(),
+          date: new Date().toISOString().split("T")[0],
+          stage: 3
+        });
+        importedErrors++;
+      }
+    });
+    saveState();
+    alert(`Successfully imported ${importedErrors} rows from CSV!`);
+  };
+  reader.readAsText(file);
+});
+
+// --- MULTI-MILESTONE MANAGER ---
+document.getElementById("addMilestoneForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = document.getElementById("milestoneName").value.trim();
+  const date = document.getElementById("milestoneDate").value;
+
+  appState.milestones.push({ id: Date.now(), name, date });
+  e.target.reset();
+  saveState();
+});
+
+function removeMilestone(id) {
+  appState.milestones = appState.milestones.filter(m => m.id !== id);
+  saveState();
+}
+
+function getPrimaryMilestone() {
+  if (!appState.milestones.length) return { name: "Exam", diffDays: 30 };
+  const sorted = [...appState.milestones].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const nearest = sorted.find(m => (new Date(m.date) - new Date()) > 0) || sorted[0];
+  const diffDays = Math.max(1, Math.ceil((new Date(nearest.date) - new Date()) / 86400000));
+  return { name: nearest.name, diffDays };
+}
 
 // --- SYLLABUS MATRIX ---
 function calculateSyllabusPercent() {
@@ -361,7 +567,7 @@ function toggleSyllabusStage(sub, idx, stage) {
   saveState();
 }
 
-// --- MOCK TEST LOGGING & AIR PREDICTOR ---
+// --- MOCKS & AIR CALIBRATION ---
 document.getElementById("mockTestForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const name = document.getElementById("mockName").value;
@@ -404,7 +610,7 @@ function calculateAIRFromMocks() {
   return "25,000+ (Needs Calibration)";
 }
 
-// --- SPACED REPETITION FLASHCARD ENGINE ---
+// --- SPACED RECALL FLASHCARDS ---
 let activeFlashIndex = 0;
 let dueFlashcards = [];
 
@@ -471,7 +677,7 @@ function nextFlashcard() {
   else {
     closeFlashModal();
     saveState();
-    alert("Spaced review session completed!");
+    alert("Recall Session Completed!");
   }
 }
 
@@ -479,14 +685,14 @@ function closeFlashModal() {
   document.getElementById("flashModal").classList.remove("active");
 }
 
-// --- GITHUB GIST CLOUD SYNC ---
+// --- GIST SYNC ---
 document.getElementById("btnPushGist").addEventListener("click", async () => {
   const token = document.getElementById("gistToken").value.trim();
   let gistId = document.getElementById("gistId").value.trim();
   if (!token) return alert("Please provide a GitHub Personal Access Token.");
 
   const payload = {
-    description: "Calibre OS Study State Sync",
+    description: "Calibre OS State Backup",
     public: false,
     files: { "calibre_state.json": { content: JSON.stringify(appState, null, 2) } }
   };
@@ -500,11 +706,11 @@ document.getElementById("btnPushGist").addEventListener("click", async () => {
     });
     const data = await res.json();
     if (data.id) {
-      saveGistCredentials(token, data.id);
+      appState.gistToken = token;
+      appState.gistId = data.id;
       document.getElementById("gistId").value = data.id;
-      alert(`Pushed successfully to Gist: ${data.id}`);
-    } else {
-      alert("GitHub didn't return a Gist ID — check that your token has the 'gist' scope.");
+      saveState();
+      alert(`Pushed to Gist: ${data.id}`);
     }
   } catch (err) {
     alert("Failed to push to GitHub Gist.");
@@ -514,7 +720,7 @@ document.getElementById("btnPushGist").addEventListener("click", async () => {
 document.getElementById("btnPullGist").addEventListener("click", async () => {
   const token = document.getElementById("gistToken").value.trim();
   const gistId = document.getElementById("gistId").value.trim();
-  if (!token || !gistId) return alert("Please provide both Token and Gist ID.");
+  if (!token || !gistId) return alert("Provide both Token and Gist ID.");
 
   try {
     const res = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -522,92 +728,39 @@ document.getElementById("btnPullGist").addEventListener("click", async () => {
     });
     const data = await res.json();
     if (data.files && data.files["calibre_state.json"]) {
-      appState = stripLegacyCredentials(JSON.parse(data.files["calibre_state.json"].content));
-      saveGistCredentials(token, gistId);
+      appState = JSON.parse(data.files["calibre_state.json"].content);
       saveState();
-      alert("State pulled successfully from Gist!");
-    } else {
-      alert("No saved state found on that Gist yet — push from a device first.");
+      alert("State restored from Gist!");
     }
   } catch (err) {
-    alert("Failed to pull from GitHub Gist.");
+    alert("Failed to pull from Gist.");
   }
 });
 
-// --- P2P STUDY ROOM (PEERJS) ---
+// --- P2P STUDY ROOM ---
 let peer = null;
 let peerConnections = [];
 
-function showPeerMessage(msg) {
-  const el = document.getElementById("peerStatusMessage");
-  if (!el) return;
-  if (!msg) {
-    el.style.display = "none";
-    el.textContent = "";
-    return;
-  }
-  el.textContent = msg;
-  el.style.display = "block";
-}
-
 function initPeer() {
-  if (typeof Peer === "undefined") {
-    document.getElementById("peerStatusBadge").textContent = "Unavailable Offline";
-    showPeerMessage("Study-room library failed to load. Check your connection and reload the page.");
-    return;
-  }
+  if (typeof Peer === "undefined") return;
   peer = new Peer();
   peer.on("open", (id) => {
     document.getElementById("myPeerId").value = id;
     document.getElementById("peerStatusBadge").textContent = "Active & Ready";
   });
-
-  peer.on("connection", (conn) => {
-    handlePeerConnection(conn);
-  });
-
-  peer.on("error", (err) => {
-    document.getElementById("peerStatusBadge").textContent = "Connection Error";
-    showPeerMessage(
-      err && err.type === "peer-unavailable"
-        ? "That Peer ID wasn't found. Double-check it with your partner and try again."
-        : "Couldn't reach the study-room service. Check your connection and try again."
-    );
-  });
-
-  peer.on("disconnected", () => {
-    document.getElementById("peerStatusBadge").textContent = "Disconnected";
-    showPeerMessage("Lost connection to the study-room service. Reload the page to reconnect.");
-  });
+  peer.on("connection", (conn) => handlePeerConnection(conn));
 }
 
 function handlePeerConnection(conn) {
   peerConnections.push(conn);
-  conn.on("data", (data) => {
-    updatePeerDisplay(conn.peer, data);
-  });
-  conn.on("open", () => {
-    showPeerMessage("");
-    broadcastPeerData();
-  });
-  conn.on("close", () => {
-    peerConnections = peerConnections.filter(c => c !== conn);
-    const el = document.getElementById(`peer-${conn.peer}`);
-    if (el) el.remove();
-    const container = document.getElementById("peerRoomCards");
-    if (container && container.children.length === 0) {
-      container.innerHTML = `<span class="empty-hint">No peer connected. Share your ID to study synchronously.</span>`;
-    }
-  });
-  conn.on("error", () => showPeerMessage("Connection to that partner dropped unexpectedly."));
+  conn.on("data", (data) => updatePeerDisplay(conn.peer, data));
+  conn.on("open", () => broadcastPeerData());
 }
 
 document.getElementById("btnConnectPeer").addEventListener("click", () => {
   const targetId = document.getElementById("targetPeerId").value.trim();
-  if (!targetId) return showPeerMessage("Paste a partner's Peer ID first.");
-  if (!peer || peer.disconnected) return showPeerMessage("Still connecting to the study-room service — try again in a moment.");
-  const conn = peer.connect(targetId);
-  handlePeerConnection(conn);
+  if (!targetId || !peer) return;
+  handlePeerConnection(peer.connect(targetId));
 });
 
 function broadcastPeerData() {
@@ -616,9 +769,7 @@ function broadcastPeerData() {
     totalSolved: Object.values(appState.subjects).reduce((a, b) => a + b.solved, 0),
     streak: appState.streak
   };
-  peerConnections.forEach(c => {
-    if (c.open) c.send(payload);
-  });
+  peerConnections.forEach(c => { if (c.open) c.send(payload); });
 }
 
 function updatePeerDisplay(peerId, data) {
@@ -626,11 +777,10 @@ function updatePeerDisplay(peerId, data) {
   const cardId = `peer-${peerId}`;
   let el = document.getElementById(cardId);
   if (!el) {
-    const hint = container.querySelector(".empty-hint");
-    if (hint) container.innerHTML = "";
     el = document.createElement("div");
     el.id = cardId;
     el.className = "peer-card";
+    container.innerHTML = "";
     container.appendChild(el);
   }
   el.innerHTML = `
@@ -642,7 +792,7 @@ function updatePeerDisplay(peerId, data) {
   `;
 }
 
-// Directives Form Submit
+// --- DIRECTIVES & ERRORS CORE ---
 document.getElementById("directiveForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const input = document.getElementById("directiveInput");
@@ -664,16 +814,6 @@ function removeDirective(id) {
   saveState();
 }
 
-function incrementSubject(subKey, change) {
-  const sub = appState.subjects[subKey];
-  if (!sub) return;
-  sub.solved = Math.max(0, sub.solved + change);
-  if (change > 0) sub.correct = Math.max(0, sub.correct + change);
-  saveState();
-  broadcastPeerData();
-}
-
-// Error Submit
 document.getElementById("errorLogForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const topic = document.getElementById("errTopic").value.trim();
@@ -702,20 +842,9 @@ function deleteError(id) {
   saveState();
 }
 
-// Settings
-document.getElementById("btnSaveSettings").addEventListener("click", () => {
-  appState.examTargetDate = document.getElementById("settingExamDate").value;
-  appState.totalExamProblemTarget = parseInt(document.getElementById("settingTotalTarget").value);
-  appState.dailyQuestionTarget = parseInt(document.getElementById("settingDailyTarget").value);
-  Object.keys(appState.subjects).forEach(k => appState.subjects[k].target = appState.dailyQuestionTarget);
-  saveState();
-  alert("Settings updated.");
-});
-
-// JSON Export / Import
+// Backup JSON
 document.getElementById("btnExportJSON").addEventListener("click", () => {
-  const exportable = stripLegacyCredentials({ ...appState });
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportable, null, 2));
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
   const a = document.createElement("a");
   a.setAttribute("href", dataStr);
   a.setAttribute("download", `calibre_backup_${new Date().toISOString().split("T")[0]}.json`);
@@ -730,89 +859,18 @@ document.getElementById("importFileInput").addEventListener("change", (e) => {
     try {
       const parsed = JSON.parse(event.target.result);
       if (parsed.subjects && parsed.syllabus) {
-        appState = stripLegacyCredentials(parsed);
+        appState = parsed;
         saveState();
-        alert("State successfully restored!");
-      } else {
-        alert("That file doesn't look like a Calibre backup.");
+        alert("State restored!");
       }
-    } catch (err) {
-      alert("Invalid JSON format.");
-    }
+    } catch (err) { alert("Invalid JSON."); }
   };
   reader.readAsText(e.target.files[0]);
 });
 
-document.getElementById("btnForgetGistToken").addEventListener("click", () => {
-  localStorage.removeItem(GIST_CREDENTIALS_KEY);
-  document.getElementById("gistToken").value = "";
-  document.getElementById("gistId").value = "";
-});
-
-// Canvas Export
-document.getElementById("btnDownloadCard").addEventListener("click", () => {
-  const canvas = document.getElementById("shareCanvas");
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#0a0e14";
-  ctx.fillRect(0, 0, 1080, 1080);
-  ctx.strokeStyle = "#1e293b";
-  ctx.lineWidth = 8;
-  ctx.strokeRect(40, 40, 1000, 1000);
-
-  ctx.fillStyle = "#38bdf8";
-  ctx.font = "bold 44px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("CALIBRE OS", 100, 140);
-  ctx.fillStyle = "#64748b";
-  ctx.font = "26px 'JetBrains Mono', monospace";
-  ctx.fillText(new Date().toDateString().toUpperCase(), 100, 190);
-
-  ctx.fillStyle = "#121824";
-  ctx.fillRect(100, 260, 880, 200);
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "28px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("DEEP FOCUS TIME", 140, 320);
-  ctx.fillStyle = "#f8fafc";
-  ctx.font = "bold 72px 'JetBrains Mono', monospace";
-  ctx.fillText(`${(appState.focusMinutesToday / 60).toFixed(1)} Hours`, 140, 410);
-
-  const totalSolved = Object.values(appState.subjects).reduce((a, b) => a + b.solved, 0);
-  ctx.fillStyle = "#121824";
-  ctx.fillRect(100, 500, 880, 200);
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "28px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("PROBLEMS SOLVED TODAY", 140, 560);
-  ctx.fillStyle = "#38bdf8";
-  ctx.font = "bold 72px 'JetBrains Mono', monospace";
-  ctx.fillText(`${totalSolved} Questions`, 140, 650);
-
-  ctx.fillStyle = "#121824";
-  ctx.fillRect(100, 740, 420, 180);
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "24px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("STREAK", 140, 800);
-  ctx.fillStyle = "#f8fafc";
-  ctx.font = "bold 52px 'JetBrains Mono', monospace";
-  ctx.fillText(`${appState.streak} Days 🔥`, 140, 870);
-
-  ctx.fillStyle = "#121824";
-  ctx.fillRect(560, 740, 420, 180);
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "24px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("MOCK AIR", 600, 800);
-  ctx.fillStyle = "#38bdf8";
-  ctx.font = "bold 44px 'JetBrains Mono', monospace";
-  ctx.fillText(calculateAIRFromMocks().slice(0, 12), 600, 870);
-
-  const link = document.createElement("a");
-  link.download = `calibre_${new Date().toISOString().split("T")[0]}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-});
-
-// --- CHARTS ---
+// --- ANALYTICS CHARTS ---
 let radarChartInstance = null;
-let barChartInstance = null;
+let hourlyChartInstance = null;
 
 function computeSubjectScore(subKey) {
   const data = appState.subjects[subKey];
@@ -853,16 +911,17 @@ function initCharts() {
     }
   });
 
-  const barCtx = document.getElementById("weeklyBarChart").getContext("2d");
-  barChartInstance = new Chart(barCtx, {
+  const hourlyCtx = document.getElementById("hourlyBarChart").getContext("2d");
+  hourlyChartInstance = new Chart(hourlyCtx, {
     type: "bar",
     data: {
-      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
       datasets: [{
-        data: [4.0, 3.5, 5.0, 2.5, 4.5, (appState.focusMinutesToday / 60).toFixed(1), 0],
+        label: "Focus (mins)",
+        data: appState.hourlyFocus,
         backgroundColor: "#1e293b",
         hoverBackgroundColor: "#38bdf8",
-        borderRadius: 4
+        borderRadius: 3
       }]
     },
     options: {
@@ -870,7 +929,7 @@ function initCharts() {
       maintainAspectRatio: false,
       scales: {
         y: { grid: { color: "#1e293b" }, ticks: { color: "#64748b" } },
-        x: { grid: { display: false }, ticks: { color: "#64748b" } }
+        x: { grid: { display: false }, ticks: { color: "#64748b", font: { size: 9 } } }
       },
       plugins: { legend: { display: false } }
     }
@@ -886,29 +945,34 @@ function updateCharts() {
     ];
     radarChartInstance.update();
   }
+  if (hourlyChartInstance) {
+    hourlyChartInstance.data.datasets[0].data = appState.hourlyFocus;
+    hourlyChartInstance.update();
+  }
 }
 
-// --- RENDER DOM ---
+// --- RENDER DOM ENGINE ---
 function renderAll() {
-  // Top Headers
   document.getElementById("topStreak").textContent = `${appState.streak} Days`;
   document.getElementById("topHours").textContent = `${(appState.focusMinutesToday / 60).toFixed(1)}h`;
 
-  const examDate = new Date(appState.examTargetDate);
-  const diffDays = Math.max(1, Math.ceil((examDate - new Date()) / 86400000));
-  document.getElementById("topCountdown").textContent = `${diffDays} Days`;
+  const primaryMilestone = getPrimaryMilestone();
+  document.getElementById("topCountdown").textContent = `${primaryMilestone.diffDays}d (${primaryMilestone.name})`;
   document.getElementById("topRank").textContent = calculateAIRFromMocks();
 
-  // Run Rate
+  // Run-Rate Calculation
   const totalSolved = Object.values(appState.subjects).reduce((a, b) => a + b.solved, 0);
   const remainingQs = Math.max(0, appState.totalExamProblemTarget - totalSolved);
-  const runRate = (remainingQs / diffDays).toFixed(1);
-  document.getElementById("paceBanner").textContent = `Target Pace: Solve ${runRate} problems/day across all subjects to hit ${appState.totalExamProblemTarget} questions before exam.`;
+  const runRate = (remainingQs / primaryMilestone.diffDays).toFixed(1);
+  document.getElementById("paceBanner").textContent = `Required Velocity: Solve ${runRate} problems/day before ${primaryMilestone.name}.`;
 
-  // Settings
-  document.getElementById("settingExamDate").value = appState.examTargetDate;
-  document.getElementById("settingTotalTarget").value = appState.totalExamProblemTarget;
-  document.getElementById("settingDailyTarget").value = appState.dailyQuestionTarget;
+  // Ghost Mode Comparison
+  const focusDiff = appState.focusMinutesToday - (appState.historicalDailyAvgFocus * (new Date().getHours() / 24));
+  const focusDiffHours = (Math.abs(focusDiff) / 60).toFixed(1);
+  const statusStr = focusDiff >= 0 
+    ? `🔥 Ahead of historical benchmark by +${focusDiffHours}h output.`
+    : `⚠️ Behind baseline pace by -${focusDiffHours}h. Complete a 50m sprint to calibrate.`;
+  document.getElementById("ghostModeText").textContent = statusStr;
 
   // Directives
   const totalD = appState.directives.length;
@@ -929,23 +993,27 @@ function renderAll() {
     `).join("");
   });
 
-  // Grinder
+  // Tiered Problem Grinder
   const grinderContainer = document.getElementById("grinderList");
   grinderContainer.innerHTML = Object.keys(appState.subjects).map(subKey => {
     const sub = appState.subjects[subKey];
+    const tiers = sub.tiers || { Foundation: 0, Main: 0, Advanced: 0 };
     const pct = Math.min(100, Math.round((sub.solved / sub.target) * 100));
     return `
       <div class="grinder-item">
         <div class="grinder-info">
-          <span>${subKey}</span>
-          <span>${sub.solved} / ${sub.target} Qs (${pct}%)</span>
+          <span>${subKey} (${sub.solved} / ${sub.target} Qs)</span>
+          <span class="text-muted" style="font-size:0.75rem;">F:${tiers.Foundation || 0} | M:${tiers.Main || 0} | A:${tiers.Advanced || 0}</span>
         </div>
         <div class="grinder-controls">
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" style="width: ${pct}%"></div>
           </div>
-          <button class="btn btn-secondary btn-small" onclick="incrementSubject('${subKey}', -1)">-</button>
-          <button class="btn btn-primary btn-small" onclick="incrementSubject('${subKey}', 1)">+1</button>
+          <div class="tier-buttons">
+            <button class="tier-btn" onclick="quickAddTieredQuestion('${subKey}', 'Foundation')">+F</button>
+            <button class="tier-btn" onclick="quickAddTieredQuestion('${subKey}', 'Main')">+M</button>
+            <button class="tier-btn" onclick="quickAddTieredQuestion('${subKey}', 'Advanced')">+Adv</button>
+          </div>
         </div>
       </div>
     `;
@@ -956,16 +1024,23 @@ function renderAll() {
     ? (appState.paceRecords.reduce((a, b) => a + b.timeSecs, 0) / appState.paceRecords.length / 60).toFixed(1)
     : "--";
   document.getElementById("currentPaceAvg").textContent = `Avg Pace: ${avgPace} min/Q`;
-  document.getElementById("paceLogList").innerHTML = appState.paceRecords.slice(0, 6).map(p => `
+  document.getElementById("paceLogList").innerHTML = appState.paceRecords.slice(0, 5).map(p => `
     <span class="chip" style="color: ${p.correct ? 'var(--accent-success)' : 'var(--accent-danger)'}">
-      ${p.subject}: ${(p.timeSecs / 60).toFixed(1)}m (${p.correct ? '✓' : '✗'})
+      ${p.subject} [${p.difficulty || 'M'}]: ${(p.timeSecs / 60).toFixed(1)}m
     </span>
-  `).join("") || `<span class="empty-hint">No pace records logged.</span>`;
+  `).join("") || `<span class="empty-hint">No pace records.</span>`;
+
+  // Milestones List
+  document.getElementById("milestonesList").innerHTML = appState.milestones.map(m => `
+    <div class="milestone-item">
+      <span><strong>${m.name}</strong> (${m.date})</span>
+      <button class="btn btn-tiny btn-danger" onclick="removeMilestone(${m.id})">✕</button>
+    </div>
+  `).join("") || `<span class="empty-hint">No milestones added.</span>`;
 
   // Syllabus Matrix Render
   document.getElementById("syllabusProgressPct").textContent = `${calculateSyllabusPercent()}%`;
-  const sylContainer = document.getElementById("syllabusContainer");
-  sylContainer.innerHTML = Object.keys(appState.syllabus).map(sub => `
+  document.getElementById("syllabusContainer").innerHTML = Object.keys(appState.syllabus).map(sub => `
     <div class="syllabus-subject-col">
       <h3>${sub}</h3>
       ${appState.syllabus[sub].map((ch, idx) => `
@@ -981,7 +1056,7 @@ function renderAll() {
     </div>
   `).join("");
 
-  // Error Table & Due Errors
+  // Error Table with Socratic Button
   const due = getDueErrors();
   document.getElementById("dueErrorsCount").textContent = `${due.length} Due`;
   document.getElementById("errorLogBody").innerHTML = appState.errors.map(err => {
@@ -993,7 +1068,10 @@ function renderAll() {
         <td><span class="badge">${err.type}</span></td>
         <td>${err.note}</td>
         <td><span class="badge ${isDue ? 'due' : 'fresh'}">${isDue ? `Due (Stage ${err.stage}d)` : `Stage ${err.stage}d`}</span></td>
-        <td><button class="btn btn-secondary btn-small" onclick="deleteError(${err.id})">Resolve</button></td>
+        <td>
+          <button class="btn btn-secondary btn-tiny" onclick="copySocraticPrompt(${err.id})">Socratic AI</button>
+          <button class="btn btn-secondary btn-tiny" onclick="deleteError(${err.id})">Resolve</button>
+        </td>
       </tr>
     `;
   }).join("") || `<tr><td colspan="6" style="text-align:center;color:#64748b;">No logged errors.</td></tr>`;
@@ -1012,14 +1090,6 @@ function renderAll() {
     </tr>
   `).join("") || `<tr><td colspan="8" style="text-align:center;color:#64748b;">No mocks logged yet.</td></tr>`;
 
-  if (appState.mocks.length > 0) {
-    const latest = appState.mocks[0];
-    document.getElementById("mockSummaryCallout").innerHTML = `
-      <div style="font-size:1.1rem; font-weight:700;">Latest: ${latest.name} — ${latest.score}/${latest.total} (${latest.accuracy}% Accuracy)</div>
-      <div class="text-muted mt-2">Predicted Standings: <strong style="color:var(--accent-primary);">${calculateAIRFromMocks()}</strong></div>
-    `;
-  }
-
   // Weekly Audit Synthesis
   const frictionCounts = {};
   appState.frictionLogs.forEach(f => frictionCounts[f.reason] = (frictionCounts[f.reason] || 0) + 1);
@@ -1032,30 +1102,21 @@ function renderAll() {
   document.getElementById("weeklyAuditContent").innerHTML = `
     <div class="audit-box">
       <h4>⚠️ Primary Error Leak</h4>
-      <p class="mt-2"><strong>${topErr ? `${topErr[0]} (${topErr[1]} logged)` : "No dominant errors recorded."}</strong></p>
-      <span class="text-muted">Target this in your next problem batch before moving forward.</span>
+      <p class="mt-2"><strong>${topErr ? `${topErr[0]} (${topErr[1]} occurrences)` : "No dominant errors recorded."}</strong></p>
+      <span class="text-muted">Target this in your next problem batch.</span>
     </div>
     <div class="audit-box">
       <h4>🧠 Primary Friction Driver</h4>
-      <p class="mt-2"><strong>${topFriction ? `${topFriction[0]} (${topFriction[1]} times)` : "Smooth execution with zero friction."}</strong></p>
-      <span class="text-muted">Adjust daily sleep routines or keep mobile devices in another room.</span>
+      <p class="mt-2"><strong>${topFriction ? `${topFriction[0]} (${topFriction[1]} times)` : "Zero logged interruptions."}</strong></p>
+      <span class="text-muted">Lock in Kiosk Mode during morning sprint sessions.</span>
     </div>
   `;
 
-  // Completed blocks
-  document.getElementById("completedBlocksList").innerHTML = appState.completedSessions.map(s => `<span class="chip">${s}</span>`).join("") || `<span class="empty-hint">No sessions completed today.</span>`;
-}
-
-function hydrateGistFields() {
-  const creds = loadGistCredentials();
-  if (creds.token) document.getElementById("gistToken").value = creds.token;
-  if (creds.gistId) document.getElementById("gistId").value = creds.gistId;
+  document.getElementById("completedBlocksList").innerHTML = appState.completedSessions.map(s => `<span class="chip">${s}</span>`).join("") || `<span class="empty-hint">No sessions logged today.</span>`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderAll();
-  try { initCharts(); } catch (e) { console.error("Chart init failed (chart.js may not have loaded):", e); }
-  try { initPeer(); } catch (e) { console.error("Peer init failed (peerjs may not have loaded):", e); }
-  hydrateGistFields();
-  maybeShowOnboarding();
+  initCharts();
+  initPeer();
 });
