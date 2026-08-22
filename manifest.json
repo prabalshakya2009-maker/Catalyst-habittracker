@@ -1,15 +1,32 @@
 {
-  "name": "Calibre OS — Precision Study Engine",
+  "name": "Calibre OS — Precision Study Workspace",
   "short_name": "Calibre",
+  "description": "Precision performance, focus monotasking, and problem calibration operating system.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0a0e14",
-  "theme_color": "#0a0e14",
+  "orientation": "any",
+  "background_color": "#080c14",
+  "theme_color": "#080c14",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.5'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='4'/><line x1='12' y1='2' x2='12' y2='6'/><line x1='12' y1='18' x2='12' y2='22'/><line x1='2' y1='12' x2='6' y2='12'/><line x1='18' y1='12' x2='22' y2='12'/></svg>",
       "sizes": "192x192 512x512",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Focus Sprint",
+      "url": "./index.html#dashboard",
+      "description": "Launch the deep work timer"
+    },
+    {
+      "name": "Log Mistake",
+      "url": "./index.html#errors",
+      "description": "Open the Error Calibration Board"
     }
   ]
 }
