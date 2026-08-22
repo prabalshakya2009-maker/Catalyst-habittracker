@@ -58,6 +58,10 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Cloud Sync & System
         </button>
+        <button class="nav-btn" id="btnShowTour">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          How Calibre Works
+        </button>
       </nav>
 
       <!-- Ambient Audio Synthesizer -->
@@ -389,7 +393,7 @@
               <h2 class="card-title">Peer-to-Peer Study Session</h2>
               <span class="badge" id="peerStatusBadge">Disconnected</span>
             </div>
-            <p class="text-muted">Zero-server, privacy-first peer sync via WebRTC. Share live timer status and problem counts with accountability partners.</p>
+            <p class="text-muted">Privacy-first peer sync via WebRTC — a lightweight broker only helps two devices find each other; your study data then flows directly between you and your partner, never through a server.</p>
             
             <div class="form-stack mt-4">
               <div class="form-group">
@@ -406,6 +410,7 @@
                   <button class="btn btn-primary btn-small" id="btnConnectPeer">Connect</button>
                 </div>
               </div>
+              <p class="text-muted" id="peerStatusMessage" style="font-size: 0.8rem; display: none;"></p>
             </div>
           </div>
 
@@ -449,10 +454,12 @@
               <p class="text-muted" style="margin-bottom: 12px;">Sync your data across devices securely using a GitHub Personal Access Token (PAT).</p>
               <div class="form-stack">
                 <input type="password" id="gistToken" placeholder="GitHub Token (gist scope)">
+                <p class="text-muted" style="font-size: 0.78rem;">🔒 Stored only in this browser's local storage and sent directly to GitHub's API — never included in your JSON backup or in the study data pushed to your Gist.</p>
                 <input type="text" id="gistId" placeholder="Existing Gist ID (leave empty on first push)">
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                   <button class="btn btn-secondary btn-small" id="btnPushGist">Push to Cloud</button>
                   <button class="btn btn-secondary btn-small" id="btnPullGist">Pull from Cloud</button>
+                  <button type="button" class="btn btn-tiny" style="background:none;color:#64748b;text-decoration:underline;" id="btnForgetGistToken">Forget saved token</button>
                 </div>
               </div>
             </div>
@@ -528,6 +535,39 @@
         <button class="btn btn-danger" id="btnFailFlash" style="display: none;">Failed Recall (Reset to Day 3)</button>
         <button class="btn btn-primary" id="btnPassFlash" style="display: none;">Mastered (Advance Stage)</button>
         <button class="btn btn-secondary btn-small" onclick="closeFlashModal()">Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ONBOARDING WELCOME -->
+  <div class="modal-overlay" id="onboardingModal">
+    <div class="modal-box modal-large">
+      <h3 class="modal-title">Welcome to Calibre OS</h3>
+      <p class="text-muted mt-2" style="margin-bottom: 16px;">A quick map before you start calibrating:</p>
+      <div class="form-stack" style="gap: 10px;">
+        <div class="slot-group">
+          <div class="slot-title">Dashboard</div>
+          <p class="text-muted" style="font-size: 0.83rem;">Run your Deep Work timer and set today's Morning / Afternoon / Evening directives.</p>
+        </div>
+        <div class="slot-group">
+          <div class="slot-title">Problem Pace & Grinder</div>
+          <p class="text-muted" style="font-size: 0.83rem;">Log daily question counts per subject and time yourself per question.</p>
+        </div>
+        <div class="slot-group">
+          <div class="slot-title">Error Calibration & Flash</div>
+          <p class="text-muted" style="font-size: 0.83rem;">Log a mistake once, then let spaced recall (Day 3 / 7 / 21) bring it back for active review.</p>
+        </div>
+        <div class="slot-group">
+          <div class="slot-title">Syllabus, Mocks & Analytics</div>
+          <p class="text-muted" style="font-size: 0.83rem;">Track chapter coverage, log full mock exams, and watch your calibrated AIR estimate update.</p>
+        </div>
+        <div class="slot-group">
+          <div class="slot-title">P2P Study Room & Settings</div>
+          <p class="text-muted" style="font-size: 0.83rem;">Sync live progress with a study partner, back up your data, or sync it across your own devices.</p>
+        </div>
+      </div>
+      <div class="flashcard-actions mt-4">
+        <button class="btn btn-primary" id="btnCloseOnboarding" style="width: 100%;">Start Calibrating →</button>
       </div>
     </div>
   </div>

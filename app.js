@@ -1,4 +1,31 @@
 const STORAGE_KEY = "CALIBRE_OS_STATE_V3";
+const GIST_CREDENTIALS_KEY = "CALIBRE_GIST_CREDENTIALS";
+const ONBOARDING_KEY = "CALIBRE_ONBOARDED_V1";
+
+// The GitHub token + Gist ID live in their own local-only storage key,
+// completely separate from appState. This guarantees they can never end up
+// inside an exported JSON backup or inside the state blob pushed to a Gist.
+function loadGistCredentials() {
+  try {
+    return JSON.parse(localStorage.getItem(GIST_CREDENTIALS_KEY)) || { token: "", gistId: "" };
+  } catch {
+    return { token: "", gistId: "" };
+  }
+}
+
+function saveGistCredentials(token, gistId) {
+  localStorage.setItem(GIST_CREDENTIALS_KEY, JSON.stringify({ token, gistId }));
+}
+
+// Strips a legacy token/gistId out of any state object that might still carry
+// them (old exports, old Gist pulls, or a browser that never migrated).
+function stripLegacyCredentials(obj) {
+  if (obj && (obj.gistToken || obj.gistId)) {
+    delete obj.gistToken;
+    delete obj.gistId;
+  }
+  return obj;
+}
 
 // Initial syllabus matrix chapters with 3-tier tracking
 const defaultSyllabus = {
@@ -71,12 +98,21 @@ const initialState = {
   syllabus: defaultSyllabus,
   mocks: [],
   paceRecords: [],
-  frictionLogs: [],
-  gistToken: "",
-  gistId: ""
+  frictionLogs: []
 };
 
 let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialState;
+
+// One-time migration: earlier versions stored the GitHub token inside appState,
+// which meant it could leak into JSON backups and Gist pushes. Move it out to
+// dedicated storage so existing users keep their saved token, safely.
+if (appState.gistToken || appState.gistId) {
+  const existing = loadGistCredentials();
+  saveGistCredentials(appState.gistToken || existing.token, appState.gistId || existing.gistId);
+  delete appState.gistToken;
+  delete appState.gistId;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+}
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -89,9 +125,9 @@ if ("serviceWorker" in navigator) {
 }
 
 // --- TAB ROUTING ---
-document.querySelectorAll(".nav-btn").forEach(btn => {
+document.querySelectorAll(".nav-btn[data-tab]").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".nav-btn[data-tab]").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
 
     btn.classList.add("active");
@@ -100,6 +136,22 @@ document.querySelectorAll(".nav-btn").forEach(btn => {
 
     if (btn.dataset.tab === "analytics") updateCharts();
   });
+});
+
+// --- ONBOARDING TOUR ---
+function maybeShowOnboarding() {
+  if (!localStorage.getItem(ONBOARDING_KEY)) {
+    document.getElementById("onboardingModal").classList.add("active");
+  }
+}
+
+document.getElementById("btnCloseOnboarding").addEventListener("click", () => {
+  localStorage.setItem(ONBOARDING_KEY, "1");
+  document.getElementById("onboardingModal").classList.remove("active");
+});
+
+document.getElementById("btnShowTour").addEventListener("click", () => {
+  document.getElementById("onboardingModal").classList.add("active");
 });
 
 // --- AMBIENT AUDIO SYNTHESIZER ---
@@ -448,11 +500,11 @@ document.getElementById("btnPushGist").addEventListener("click", async () => {
     });
     const data = await res.json();
     if (data.id) {
-      appState.gistToken = token;
-      appState.gistId = data.id;
+      saveGistCredentials(token, data.id);
       document.getElementById("gistId").value = data.id;
-      saveState();
       alert(`Pushed successfully to Gist: ${data.id}`);
+    } else {
+      alert("GitHub didn't return a Gist ID — check that your token has the 'gist' scope.");
     }
   } catch (err) {
     alert("Failed to push to GitHub Gist.");
@@ -470,9 +522,12 @@ document.getElementById("btnPullGist").addEventListener("click", async () => {
     });
     const data = await res.json();
     if (data.files && data.files["calibre_state.json"]) {
-      appState = JSON.parse(data.files["calibre_state.json"].content);
+      appState = stripLegacyCredentials(JSON.parse(data.files["calibre_state.json"].content));
+      saveGistCredentials(token, gistId);
       saveState();
       alert("State pulled successfully from Gist!");
+    } else {
+      alert("No saved state found on that Gist yet — push from a device first.");
     }
   } catch (err) {
     alert("Failed to pull from GitHub Gist.");
@@ -483,8 +538,24 @@ document.getElementById("btnPullGist").addEventListener("click", async () => {
 let peer = null;
 let peerConnections = [];
 
+function showPeerMessage(msg) {
+  const el = document.getElementById("peerStatusMessage");
+  if (!el) return;
+  if (!msg) {
+    el.style.display = "none";
+    el.textContent = "";
+    return;
+  }
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
 function initPeer() {
-  if (typeof Peer === "undefined") return;
+  if (typeof Peer === "undefined") {
+    document.getElementById("peerStatusBadge").textContent = "Unavailable Offline";
+    showPeerMessage("Study-room library failed to load. Check your connection and reload the page.");
+    return;
+  }
   peer = new Peer();
   peer.on("open", (id) => {
     document.getElementById("myPeerId").value = id;
@@ -494,6 +565,20 @@ function initPeer() {
   peer.on("connection", (conn) => {
     handlePeerConnection(conn);
   });
+
+  peer.on("error", (err) => {
+    document.getElementById("peerStatusBadge").textContent = "Connection Error";
+    showPeerMessage(
+      err && err.type === "peer-unavailable"
+        ? "That Peer ID wasn't found. Double-check it with your partner and try again."
+        : "Couldn't reach the study-room service. Check your connection and try again."
+    );
+  });
+
+  peer.on("disconnected", () => {
+    document.getElementById("peerStatusBadge").textContent = "Disconnected";
+    showPeerMessage("Lost connection to the study-room service. Reload the page to reconnect.");
+  });
 }
 
 function handlePeerConnection(conn) {
@@ -501,12 +586,26 @@ function handlePeerConnection(conn) {
   conn.on("data", (data) => {
     updatePeerDisplay(conn.peer, data);
   });
-  conn.on("open", () => broadcastPeerData());
+  conn.on("open", () => {
+    showPeerMessage("");
+    broadcastPeerData();
+  });
+  conn.on("close", () => {
+    peerConnections = peerConnections.filter(c => c !== conn);
+    const el = document.getElementById(`peer-${conn.peer}`);
+    if (el) el.remove();
+    const container = document.getElementById("peerRoomCards");
+    if (container && container.children.length === 0) {
+      container.innerHTML = `<span class="empty-hint">No peer connected. Share your ID to study synchronously.</span>`;
+    }
+  });
+  conn.on("error", () => showPeerMessage("Connection to that partner dropped unexpectedly."));
 }
 
 document.getElementById("btnConnectPeer").addEventListener("click", () => {
   const targetId = document.getElementById("targetPeerId").value.trim();
-  if (!targetId || !peer) return;
+  if (!targetId) return showPeerMessage("Paste a partner's Peer ID first.");
+  if (!peer || peer.disconnected) return showPeerMessage("Still connecting to the study-room service — try again in a moment.");
   const conn = peer.connect(targetId);
   handlePeerConnection(conn);
 });
@@ -527,10 +626,11 @@ function updatePeerDisplay(peerId, data) {
   const cardId = `peer-${peerId}`;
   let el = document.getElementById(cardId);
   if (!el) {
+    const hint = container.querySelector(".empty-hint");
+    if (hint) container.innerHTML = "";
     el = document.createElement("div");
     el.id = cardId;
     el.className = "peer-card";
-    container.innerHTML = "";
     container.appendChild(el);
   }
   el.innerHTML = `
@@ -614,7 +714,8 @@ document.getElementById("btnSaveSettings").addEventListener("click", () => {
 
 // JSON Export / Import
 document.getElementById("btnExportJSON").addEventListener("click", () => {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+  const exportable = stripLegacyCredentials({ ...appState });
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportable, null, 2));
   const a = document.createElement("a");
   a.setAttribute("href", dataStr);
   a.setAttribute("download", `calibre_backup_${new Date().toISOString().split("T")[0]}.json`);
@@ -629,15 +730,23 @@ document.getElementById("importFileInput").addEventListener("change", (e) => {
     try {
       const parsed = JSON.parse(event.target.result);
       if (parsed.subjects && parsed.syllabus) {
-        appState = parsed;
+        appState = stripLegacyCredentials(parsed);
         saveState();
         alert("State successfully restored!");
+      } else {
+        alert("That file doesn't look like a Calibre backup.");
       }
     } catch (err) {
       alert("Invalid JSON format.");
     }
   };
   reader.readAsText(e.target.files[0]);
+});
+
+document.getElementById("btnForgetGistToken").addEventListener("click", () => {
+  localStorage.removeItem(GIST_CREDENTIALS_KEY);
+  document.getElementById("gistToken").value = "";
+  document.getElementById("gistId").value = "";
 });
 
 // Canvas Export
@@ -937,8 +1046,16 @@ function renderAll() {
   document.getElementById("completedBlocksList").innerHTML = appState.completedSessions.map(s => `<span class="chip">${s}</span>`).join("") || `<span class="empty-hint">No sessions completed today.</span>`;
 }
 
+function hydrateGistFields() {
+  const creds = loadGistCredentials();
+  if (creds.token) document.getElementById("gistToken").value = creds.token;
+  if (creds.gistId) document.getElementById("gistId").value = creds.gistId;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderAll();
-  initCharts();
-  initPeer();
+  try { initCharts(); } catch (e) { console.error("Chart init failed (chart.js may not have loaded):", e); }
+  try { initPeer(); } catch (e) { console.error("Peer init failed (peerjs may not have loaded):", e); }
+  hydrateGistFields();
+  maybeShowOnboarding();
 });
