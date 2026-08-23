@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Calibre — Precision Study Workspace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calibre — JEE Study Workspace</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090d16">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -77,7 +79,7 @@
         <div class="stat-box">
           <span class="stat-label">Study Time Today</span>
           <span class="stat-value" id="topFocusTime">0.0h</span>
-          <span class="stat-sub">Daily Goal: 5.0h</span>
+          <span class="stat-sub" id="topFocusGoal">Daily Goal: 5.0h</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Exam Countdown</span>
@@ -87,12 +89,16 @@
         <div class="stat-box">
           <span class="stat-label">Target Rank</span>
           <span class="stat-value accent" id="topRankPrediction">Top 5,000</span>
-          <span class="stat-sub">From mock history</span>
+          <span class="stat-sub" id="topRankHint">Indicative from mocks</span>
         </div>
       </header>
 
       <!-- TAB 1: FOCUS / DASHBOARD -->
       <section id="view-dashboard" class="tab-pane active">
+        <div class="due-banner" id="dueBanner" hidden>
+          <span id="dueBannerText">Reviews waiting</span>
+          <button type="button" class="btn btn-secondary btn-small" id="btnOpenDueReviews">Review now</button>
+        </div>
         <div class="two-column-grid">
           <!-- Focus Timer Card -->
           <div class="card timer-card">
@@ -125,7 +131,8 @@
 
             <div class="timer-actions">
               <button class="btn btn-primary btn-large" id="btnTimerStart">Start Session</button>
-              <button class="btn btn-secondary btn-large" id="btnTimerReset">Reset</button>
+              <button class="btn btn-secondary btn-large" id="btnTimerSave">Stop &amp; save</button>
+              <button class="btn btn-secondary btn-large" id="btnTimerReset">Discard</button>
             </div>
 
             <div class="completed-blocks-section">
@@ -195,10 +202,21 @@
           <div class="card">
             <div class="card-header">
               <div>
-                <h3>Daily Practice Counters</h3>
-                <p class="card-sub">Log solved questions to track target progress</p>
+                <h3>Today's Question Log</h3>
+                <p class="card-sub">Tap after a set — +1 is correct, Wrong is incorrect. Lifetime totals stay separate.</p>
               </div>
+              <span class="badge" id="todayQsBadge">0 Qs today</span>
             </div>
+            <form id="setLogForm" class="set-log-form">
+              <select id="setLogSubject" aria-label="Subject">
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Mathematics">Mathematics</option>
+              </select>
+              <input type="number" id="setLogAttempted" min="1" max="90" placeholder="Attempted" required>
+              <input type="number" id="setLogWrong" min="0" max="90" placeholder="Wrong" value="0">
+              <button type="submit" class="btn btn-primary">Log set</button>
+            </form>
             <div class="counter-stack" id="subjectCountersContainer"></div>
           </div>
 
@@ -207,7 +225,7 @@
             <div class="card-header">
               <div>
                 <h3>Question Pace Stopwatch</h3>
-                <p class="card-sub">Time your speed per problem</p>
+                <p class="card-sub">JEE Main pace is about 2.4 min/Q (180 min / 75 Qs). Log even if you didn't time it.</p>
               </div>
               <span class="badge" id="avgPaceText">Avg: -- min/Q</span>
             </div>
@@ -221,8 +239,12 @@
                   <option value="Mathematics">Mathematics</option>
                 </select>
                 <button class="btn btn-primary" id="btnPaceToggle">Start Question</button>
-                <button class="btn btn-success" id="btnPaceCorrect">✓ Solved Correct</button>
-                <button class="btn btn-danger" id="btnPaceMistake">✗ Got Wrong</button>
+                <button class="btn btn-success" id="btnPaceCorrect">✓ Correct</button>
+                <button class="btn btn-danger" id="btnPaceMistake">✗ Wrong</button>
+                <label class="auto-next">
+                  <input type="checkbox" id="paceAutoNext" checked>
+                  Auto-start next
+                </label>
               </div>
             </div>
 
@@ -260,7 +282,7 @@
                   <option value="Misread Constraint">Misread Constraint</option>
                   <option value="Time Trap">Time Trap</option>
                 </select>
-                <input type="text" id="errTakeaway" placeholder="What went wrong & key formula takeaway" required>
+                <input type="text" id="errTakeaway" placeholder="Takeaway (optional — log now, fill later)">
               </div>
               <button type="submit" class="btn btn-primary">Save to Notebook</button>
             </form>
@@ -274,8 +296,8 @@
               <p class="card-sub">Every logged mistake has a one-click <strong>"Copy AI Prompt"</strong> button. Paste it into ChatGPT or Gemini to get a step-by-step diagnostic breakdown of where your logic failed.</p>
             </div>
             <div class="callout-box">
-              <strong>Spaced Repetition Active</strong>
-              <p>Mistakes are resurfaced automatically on Day 3, Day 7, and Day 21.</p>
+              <strong>Spaced repetition</strong>
+              <p>New mistakes are due tomorrow. After each review they return in 3, then 7, then 21 days — they stay until you mark them mastered.</p>
             </div>
           </div>
         </div>
@@ -283,9 +305,14 @@
         <div class="card mt-4">
           <div class="card-header">
             <h3>Mistake Notebook</h3>
-            <span class="card-sub">Review regularly to prevent recurring errors</span>
+            <div class="header-actions">
+              <button type="button" class="btn btn-secondary btn-tiny" data-mistake-filter="due">Due</button>
+              <button type="button" class="btn btn-secondary btn-tiny" data-mistake-filter="open">Open</button>
+              <button type="button" class="btn btn-secondary btn-tiny" data-mistake-filter="all">All</button>
+            </div>
           </div>
-          <div class="table-container">
+          <div class="mistake-cards" id="mistakeCards"></div>
+          <div class="table-container desktop-table">
             <table class="data-table">
               <thead>
                 <tr>
@@ -312,18 +339,25 @@
             </div>
             <form id="mockForm" class="vertical-form">
               <div class="form-row">
-                <input type="text" id="mockName" placeholder="Test Name (e.g. Major Test 02)" required>
+                <input type="text" id="mockName" placeholder="Test name (e.g. Allen Major 02)" required>
                 <input type="date" id="mockDate" required>
               </div>
               <div class="form-row">
-                <input type="number" id="mockPhy" placeholder="Physics Marks" required>
-                <input type="number" id="mockChem" placeholder="Chemistry Marks" required>
-                <input type="number" id="mockMath" placeholder="Math Marks" required>
+                <select id="mockExam" aria-label="Exam">
+                  <option value="main">JEE Main (300)</option>
+                  <option value="advanced">JEE Advanced / other</option>
+                </select>
+                <input type="number" id="mockTotal" placeholder="Max marks" value="300" min="1" required>
               </div>
               <div class="form-row">
-                <input type="number" id="mockTotal" placeholder="Max Marks (e.g. 300)" value="300" required>
-                <input type="number" id="mockNegatives" placeholder="Negative Marks" value="0" required>
+                <input type="number" id="mockPhy" placeholder="Physics /100" min="-100" max="120" required>
+                <input type="number" id="mockChem" placeholder="Chemistry /100" min="-100" max="120" required>
+                <input type="number" id="mockMath" placeholder="Math /100" min="-100" max="120" required>
               </div>
+              <div class="form-row">
+                <input type="number" id="mockNegatives" placeholder="Marks lost to −1 (optional)" value="0" min="0">
+              </div>
+              <p class="card-sub" id="mockLiveTotal">Total: — / 300</p>
               <button type="submit" class="btn btn-primary">Save Mock Test</button>
             </form>
           </div>
@@ -354,7 +388,8 @@
                   <th>Math</th>
                   <th>Total Score</th>
                   <th>Negatives</th>
-                  <th>Accuracy</th>
+                  <th>Est. %ile</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody id="mockTableBody"></tbody>
@@ -380,8 +415,12 @@
                 <input type="number" id="settingTotalGoal" value="3000">
               </div>
               <div class="form-group">
-                <label>Daily Questions Target (per subject):</label>
-                <input type="number" id="settingDailySubjectGoal" value="20">
+                <label>Daily questions target (per subject):</label>
+                <input type="number" id="settingDailySubjectGoal" value="20" min="1">
+              </div>
+              <div class="form-group">
+                <label>Daily focus goal (hours):</label>
+                <input type="number" id="settingDailyHours" value="5" min="0.5" step="0.5">
               </div>
               <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
             </div>
@@ -412,6 +451,7 @@
   </div>
 
   <canvas id="dailyCardCanvas" width="1080" height="1080" style="display: none;"></canvas>
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>
 </html>

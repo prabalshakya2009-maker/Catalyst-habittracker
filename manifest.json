@@ -25,8 +25,8 @@
     },
     {
       "name": "Log Mistake",
-      "url": "./index.html#errors",
-      "description": "Open the Error Calibration Board"
+      "url": "./index.html#mistakes",
+      "description": "Open the mistake notebook"
     }
   ]
 }

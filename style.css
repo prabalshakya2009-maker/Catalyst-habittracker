@@ -757,6 +757,110 @@ input:focus, select:focus {
 .mt-4 { margin-top: 20px; }
 .empty-hint { font-size: 0.82rem; color: var(--text-dim); }
 
+.due-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid var(--accent-amber);
+  border-radius: var(--radius-md);
+  color: var(--accent-amber);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.due-banner[hidden] {
+  display: none;
+}
+
+.set-log-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.set-log-form input,
+.set-log-form select {
+  flex: 1;
+  min-width: 90px;
+}
+
+.auto-next {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.active-filter {
+  border-color: var(--accent-cyan) !important;
+  color: var(--accent-cyan) !important;
+}
+
+.mistake-cards {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mistake-card {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mistake-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.toast-stack {
+  position: fixed;
+  bottom: 76px;
+  right: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(360px, calc(100vw - 24px));
+}
+
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  font-size: 0.85rem;
+}
+
+@media (min-width: 769px) {
+  .toast-stack {
+    bottom: 24px;
+  }
+}
+
 /* =========================================================
    MOBILE RESPONSIVE OVERRIDES (<= 768px ONLY)
    ========================================================= */
@@ -915,5 +1019,26 @@ input:focus, select:focus {
 
   .backup-buttons {
     flex-direction: column;
+  }
+
+  .desktop-table {
+    display: none;
+  }
+
+  .mistake-cards {
+    display: flex;
+  }
+
+  .set-log-form {
+    flex-direction: column;
+  }
+
+  .counter-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .timer-actions {
+    flex-wrap: wrap;
   }
 }

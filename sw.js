@@ -1,4 +1,4 @@
-const CACHE_NAME = "calibre-core-v5.0";
+const CACHE_NAME = "calibre-core-v7.0";
 
 // Static local assets & external CDNs to cache on install
 const PRECACHE_ASSETS = [
