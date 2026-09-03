@@ -1,4 +1,4 @@
-const CACHE_NAME = "calibre-core-v7.0";
+const CACHE_NAME = "calibre-core-v8.0";
 
 // Static local assets & external CDNs to cache on install
 const PRECACHE_ASSETS = [
@@ -15,7 +15,12 @@ const PRECACHE_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
+      // Use individual adds so a single CDN failure doesn't break install
+      return Promise.allSettled(
+        PRECACHE_ASSETS.map(url => cache.add(url).catch(err => {
+          console.warn("[SW] Failed to cache:", url, err);
+        }))
+      );
     }).then(() => self.skipWaiting())
   );
 });
@@ -25,37 +30,45 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
       );
     }).then(() => self.clients.claim())
   );
 });
 
-// Fetch Strategy: Stale-While-Revalidate with offline fallback
+// Fetch: Cache-first for local assets, Network-first for CDN resources
 self.addEventListener("fetch", (event) => {
-  // Only handle GET requests
-  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
 
+  // Skip non-GET and chrome-extension requests
+  if (event.request.method !== "GET" || url.protocol === "chrome-extension:") return;
+
+  // Network-first for Google Fonts (always fresh)
+  if (url.hostname.includes("fonts.googleapis.com") || url.hostname.includes("fonts.gstatic.com")) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first for everything else
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(() => {
-          // If offline and request is for an HTML page, serve index
-          if (event.request.headers.get("accept")?.includes("text/html")) {
-            return caches.match("./index.html");
-          }
-        });
-
-        return cachedResponse || fetchPromise;
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (response && response.status === 200 && response.type !== "opaque") {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
       });
     })
   );

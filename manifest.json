@@ -1,32 +1,34 @@
 {
-  "name": "Calibre OS — Precision Study Workspace",
+  "name": "Calibre — Precision Study Workspace",
   "short_name": "Calibre",
-  "description": "Precision performance, focus monotasking, and problem calibration operating system.",
+  "description": "Precision performance, focus monotasking, and problem calibration for competitive exam prep.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#080c14",
-  "theme_color": "#080c14",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
   "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.5'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='4'/><line x1='12' y1='2' x2='12' y2='6'/><line x1='12' y1='18' x2='12' y2='22'/><line x1='2' y1='12' x2='6' y2='12'/><line x1='18' y1='12' x2='22' y2='12'/></svg>",
-      "sizes": "192x192 512x512",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "Start Focus Sprint",
-      "url": "./index.html#dashboard",
-      "description": "Launch the deep work timer"
+      "name": "Focus Tab",
+      "short_name": "Focus",
+      "url": "./index.html#focus",
+      "description": "Open the Focus timer"
     },
     {
-      "name": "Log Mistake",
-      "url": "./index.html#mistakes",
-      "description": "Open the mistake notebook"
+      "name": "Practice Tab",
+      "short_name": "Practice",
+      "url": "./index.html#practice",
+      "description": "Log today's questions"
     }
   ]
 }
