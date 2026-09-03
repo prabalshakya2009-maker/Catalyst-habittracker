@@ -1766,3 +1766,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  MODAL HELPERS (needed for inline onclick handlers)
+// ═══════════════════════════════════════════════════════════════
+window.closeMistakeModal = function() { document.getElementById("mistakeModal").classList.remove("active"); };
+window.closeMockModal = function() { document.getElementById("mockModal").classList.remove("active"); };
+
+document.getElementById("btnSaveMistake")?.addEventListener("click", () => {
+  const topic      = document.getElementById("mistakeTopic")?.value?.trim();
+  const subject    = document.getElementById("mistakeSubject")?.value;
+  const category   = document.getElementById("mistakeCategory")?.value;
+  const difficulty = document.getElementById("mistakeDifficulty")?.value || "Medium";
+  const date       = document.getElementById("mistakeDate")?.value || todayDateStr;
+  const takeaway   = document.getElementById("mistakeTakeaway")?.value?.trim() || "";
+
+  if (!topic) { showToast("Please enter a topic/concept.", "warning"); return; }
+  if (!appState.mistakes) appState.mistakes = [];
+  appState.mistakes.push({ id: Date.now(), topic, subject, category, difficulty, takeaway, stage: 1, date });
+  ["mistakeTopic","mistakeTakeaway"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  closeMistakeModal();
+  saveState();
+  showToast(`Logged! Next review in 1 day. 📌`, "success", 3000);
+});
+
+document.getElementById("btnAddMock")?.addEventListener("click", () => {
+  document.getElementById("mockModal").classList.add("active");
+  document.getElementById("mockDate").value = todayDateStr;
+});
+
+document.getElementById("btnSaveMock")?.addEventListener("click", () => {
+  const name  = document.getElementById("mockName")?.value?.trim();
+  const date  = document.getElementById("mockDate")?.value;
+  const phy   = parseInt(document.getElementById("mockPhy")?.value)   || 0;
+  const chem  = parseInt(document.getElementById("mockChem")?.value)  || 0;
+  const math  = parseInt(document.getElementById("mockMath")?.value)  || 0;
+  const total = phy + chem + math;
+  const neg   = parseInt(document.getElementById("mockNeg")?.value)   || 0;
+  const acc   = parseInt(document.getElementById("mockAccuracy")?.value) || Math.round((phy+chem+math)/total*100) || 0;
+  const notes = document.getElementById("mockNotes")?.value?.trim()   || "";
+
+  if (!name || !date) { showToast("Please fill in test name and date.", "warning"); return; }
+  if (!appState.mocks) appState.mocks = [];
+  appState.mocks.push({ id: Date.now(), name, date, phy, chem, math, score: total, total: 300, neg, accuracy: acc, notes });
+  ["mockName","mockDate","mockPhy","mockChem","mockMath","mockTotal","mockNeg","mockAccuracy","mockNotes"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  closeMockModal();
+  saveState(); updateCharts();
+  showToast("Mock result saved! 📊", "success");
+});
